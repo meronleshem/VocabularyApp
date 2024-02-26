@@ -4,5 +4,11 @@ from DatabaseManager import *
 
 
 if __name__ == '__main__':
-    print_db_data()
+    db = DatabaseManager()
+
+    db.print_db_data()
+    db.get_table_size()
+   # db.add_word("Faze")
+    
+    db.close_db_connection()
 
