@@ -1,11 +1,11 @@
 import sqlite3
-from DiffucltyEnum import Difficulty
-from Translator import translate_to_heb
+from Utils.DiffucltyEnum import Difficulty
+from Utils.Translator import translate_to_heb
 
 
 class DatabaseManager:
     def __init__(self):
-        self.conn = sqlite3.connect('vocabulary.db')
+        self.conn = sqlite3.connect('Database\\vocabulary.db')
         self.cur = self.conn.cursor()
         self.table_name = "vocabulary"
 
