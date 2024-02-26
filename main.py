@@ -1,5 +1,8 @@
 from Translator import translate_to_heb
+from DiffucltyEnum import Difficulty
+from DatabaseManager import *
+
 
 if __name__ == '__main__':
-    print(translate_to_heb("Hello"))
-    print(translate_to_heb("World"))
+    print_db_data()
+
