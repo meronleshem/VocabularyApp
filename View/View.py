@@ -9,7 +9,7 @@ class ViewManager(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Eden")
-        self.geometry("700x500")
+        self.geometry("850x500")
 
         self.style = Style("yeti")
 

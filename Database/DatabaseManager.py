@@ -34,6 +34,9 @@ class DatabaseManager:
             print(item)
 
     def get_data(self):
+        return self.cur.execute(f"SELECT engWord, hebWord FROM {self.table_name}")
+
+    def get_full_data(self):
         return self.cur.execute(f"SELECT engWord, hebWord, difficulty FROM {self.table_name}")
 
     def add_word(self, eng_word):
@@ -50,7 +53,7 @@ class DatabaseManager:
         word_id = num_of_words + 1
         examples = get_word_examples(eng_word)
 
-        word_data = (word_id, eng_word.lower(), heb_word, examples, Difficulty.EASY.name)
+        word_data = (word_id, eng_word.lower(), heb_word, examples, Difficulty.MEDIUM.name)
         self.cur.execute(f"INSERT INTO {self.table_name}"
                          f" (id, engWord, hebWord, examples, difficulty) VALUES (?, ?, ?, ?, ?)", word_data)
 

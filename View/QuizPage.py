@@ -10,7 +10,7 @@ class QuizPage(tk.Frame):
         self.dummy_label = tk.Label(self, text="")
         self.dummy_label.grid(row=2, column=2, padx=50, pady=20)
 
-        self.eng_word_label = tk.Label(self, text="", font=("Arial", 13))
+        self.eng_word_label = tb.Label(self, text="", font=("Arial", 13))
         self.eng_word_label.place(x=20, y=20)
 
         self.choice = tk.StringVar()
@@ -37,6 +37,22 @@ class QuizPage(tk.Frame):
 
         self.res_label = tb.Label(self, text="", font=("Arial", 15))
         self.res_label.grid(row=8, column=2, padx=50, pady=20, sticky="w")
+
+        self.choice_easy = tk.IntVar(value=1)
+        self.choice_medium = tk.IntVar(value=1)
+        self.choice_hard = tk.IntVar(value=1)
+
+        self.check_boxes_frame = tk.Frame()
+        self.check_boxes_frame.grid(row=1, column=4, padx=10, pady=10, sticky="nsew")
+
+        self.check_easy = ttk.Checkbutton(self, text="Easy", variable=self.choice_easy)
+        # self.check_easy.place(x=150, y=50)
+        self.check_easy.grid(row=9, column=2, padx=10, pady=10, sticky="w")
+
+        self.check_medium = ttk.Checkbutton(self, text="Medium", variable=self.choice_medium)
+        self.check_medium.grid(row=9, column=2, padx=70, pady=10, sticky="w")
+        self.check_hard = ttk.Checkbutton(self, text="Hard", variable=self.choice_hard)
+        self.check_hard.grid(row=9, column=2, padx=150, pady=10, sticky="w")
 
     def show_options(self, eng_word, heb_ans, options_list):
         self.eng_word_label.config(text=eng_word)

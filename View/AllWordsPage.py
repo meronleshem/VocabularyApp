@@ -11,7 +11,7 @@ class AllWordsPage(tk.Frame):
 
         custom_font = ("Helvetica", 12)
 
-        self.word_listbox = tk.Listbox(self, width=60, height=10, font=custom_font)
+        self.word_listbox = tk.Listbox(self, width=100, height=10, font=custom_font)
         self.word_listbox.grid(row=5, column=2, padx=30, pady=10)
         self.word_listbox.bind("<Double-Button-1>", self.on_double_click)
 
