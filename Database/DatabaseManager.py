@@ -33,7 +33,7 @@ class DatabaseManager:
             print(item)
 
     def get_data(self):
-        return self.cur.execute(f"SELECT * FROM {self.table_name}")
+        return self.cur.execute(f"SELECT engWord, hebWord FROM {self.table_name}")
 
     def add_word(self, eng_word):
         if self.is_word_exists(eng_word):
