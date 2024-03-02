@@ -2,6 +2,7 @@ import tkinter as tk
 from ttkbootstrap import Style
 from View.AddWordPage import AddWordPage
 from View.AllWordsPage import AllWordsPage
+from View.QuizPage import QuizPage
 
 
 class ViewManager(tk.Tk):
@@ -10,7 +11,7 @@ class ViewManager(tk.Tk):
         self.title("Eden")
         self.geometry("700x500")
 
-        self.style = Style()
+        self.style = Style("yeti")
 
         self.container = tk.Frame(self)
         self.container.grid(row=0, column=0, sticky="nsew")
@@ -20,10 +21,11 @@ class ViewManager(tk.Tk):
         self.pages = {
             "add_word_page": AddWordPage(self.container),
             "all_words_page": AllWordsPage(self.container),
+            "quiz_page": QuizPage(self.container)
         }
 
         self.curr_page = None
-        self.show_page(self.pages["add_word_page"])
+        self.show_page(self.pages["quiz_page"])
 
     def show_page(self, page):
         self.curr_page = page
