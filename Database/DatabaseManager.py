@@ -55,7 +55,7 @@ class DatabaseManager:
 
         self.conn.commit()
 
-        print(f"{eng_word} has added!")
+        print(f"{eng_word} was added!")
 
     def update_difficulty(self, eng_word, difficulty):
         self.cur.execute(f"UPDATE {self.table_name}"
