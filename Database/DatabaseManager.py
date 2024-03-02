@@ -3,6 +3,7 @@ from Utils.DiffucltyEnum import Difficulty
 from Utils.Translator import translate_to_heb, get_word_examples
 from Utils.FileHandler import read_words_from_file
 
+
 class DatabaseManager:
     def __init__(self):
         self.conn = sqlite3.connect('Database\\vocabulary.db')
@@ -33,7 +34,7 @@ class DatabaseManager:
             print(item)
 
     def get_data(self):
-        return self.cur.execute(f"SELECT engWord, hebWord FROM {self.table_name}")
+        return self.cur.execute(f"SELECT engWord, hebWord, difficulty FROM {self.table_name}")
 
     def add_word(self, eng_word):
         if self.is_word_exists(eng_word):

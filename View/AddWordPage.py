@@ -6,28 +6,31 @@ class AddWordPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         self.label = tk.Label(self, text="Add Word Page")
-        self.label.grid(row=2, column=2, padx=10, pady=10, sticky="w")
+        self.label.grid(row=0, column=2, padx=10, pady=10, sticky="we")
 
         self.word_entry = tk.Entry(self)
-        self.word_entry.grid(row=3, column=2, padx=10, pady=10, sticky="w")
+        self.word_entry.grid(row=1, column=2, padx=10, pady=10, sticky="we")
 
         self.add_word_btn = tk.Button(self, text="Add Word")
         self.add_word_btn.grid(row=4, column=2, padx=80, pady=10, sticky="w")
 
         self.add_from_file_btn = tk.Button(self, text="Add Words From File")
-        self.add_from_file_btn.grid(row=5, column=2, padx=10, pady=10, sticky="w")
+        self.add_from_file_btn.grid(row=5, column=2, padx=10, pady=10, sticky="we")
 
         self.translate_btn = tk.Button(self, text="Translate")
-        self.translate_btn.grid(row=4, column=2, padx=10, pady=2, sticky="w")
+        self.translate_btn.grid(row=4, column=2, padx=10, pady=2, sticky="e")
 
         self.all_words_btn = tk.Button(self, text="Show All Words")
-        self.all_words_btn.grid(row=7, column=2, padx=10, pady=10, sticky="w")
+        self.all_words_btn.grid(row=7, column=2, padx=10, pady=10, sticky="we")
 
         self.quiz_btn = tk.Button(self, text="Quiz")
-        self.quiz_btn.grid(row=8, column=2, padx=10, pady=10, sticky="w")
+        self.quiz_btn.grid(row=8, column=2, padx=10, pady=10, sticky="we")
 
-        self.translate_word_label = tk.Label(self, text="", anchor="w", justify="left", font=("Arial", 11))
-        self.translate_word_label.grid(row=2, column=3, padx=5, pady=5, sticky="w")
+        self.translate_frame = tk.Frame(parent, background="blue", padx=20, pady=20)
+        self.translate_frame.grid(row=0, column=3)
 
-        self.translate_word_examples = tk.Label(self, text="", anchor="w", justify="left", font=("Arial", 11))
-        self.translate_word_examples.grid(row=3, column=3, padx=5, pady=5, sticky="w")
+        self.translate_word_label = tk.Label(self.translate_frame, text="", anchor="w", justify="left", font=("Arial", 11))
+        self.translate_word_label.grid(row=1, column=3, padx=5, pady=5, sticky="we")
+
+        self.translate_word_examples = tk.Label(self.translate_frame, text="", anchor="w", justify="left", font=("Arial", 11))
+        self.translate_word_examples.grid(row=4, column=3, padx=5, pady=5, sticky="we")

@@ -21,28 +21,30 @@ class QuizController:
 
     def init_words_dict(self):
         words_list = self.model.get_data()
-        for eng_word, heb_word in words_list:
-            self.words_dict[eng_word] = heb_word
+        for eng_word, heb_word, difficulty in words_list:
+            self.words_dict[eng_word] = (heb_word, difficulty)
 
     def check_answer(self):
         if self.page.choice.get() == self.curr_ans:
-            self.page.res_label.config(text="Correct!")
+            self.page.res_label.config(text="Correct!", bootstyle="success")
         else:
-            self.page.res_label.config(text="Mistake! Try Again")
+            self.page.res_label.config(text="Mistake! Try Again", bootstyle="danger")
 
     def new_word_quiz(self):
         self.page.res_label.config(text="")
         eng_word = random.choice(list(self.words_dict.keys()))
-        self.curr_ans = self.words_dict[eng_word]
-
+        self.curr_ans = self.words_dict[eng_word][0]
+        difficuly_word = self.words_dict[eng_word][1]
         # Get three other random values
         other_options = random.sample(list(self.words_dict.values()), 3)
-        other_options.append(self.curr_ans)
+        other_options_words = [heb_word[0] for heb_word in other_options]
+        other_options_words.append(self.curr_ans)
 
-        while len(set(other_options)) != 4:
+        while len(set(other_options_words)) != 4:
             other_options = random.sample(list(self.words_dict.values()), 3)
-            other_options.append(self.curr_ans)
+            other_options_words = [heb_word[0] for heb_word in other_options]
+            other_options_words.append(self.curr_ans)
 
         random.shuffle(other_options)
 
-        self.page.show_options(eng_word, self.curr_ans, other_options)
+        self.page.show_options(eng_word, self.curr_ans, other_options_words)
