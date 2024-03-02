@@ -1,6 +1,5 @@
 from View.View import ViewManager
 from Database.DatabaseManager import DatabaseManager
-from Utils.Translator import translate_to_heb, get_word_examples
 import random
 
 
@@ -10,10 +9,11 @@ class QuizController:
         self.view = view
         self.page = self.view.pages["quiz_page"]
         self.words_dict = {}
-        self.curr_ans =""
+        self.curr_ans = ""
 
         self.init_words_dict()
         self.bind()
+        self.new_word_quiz()
 
     def bind(self):
         self.page.next_btn.config(command=self.new_word_quiz)
@@ -26,11 +26,12 @@ class QuizController:
 
     def check_answer(self):
         if self.page.choice.get() == self.curr_ans:
-            self.page.change_color()
+            self.page.res_label.config(text="Correct!")
         else:
-            print("Mistake")
+            self.page.res_label.config(text="Mistake! Try Again")
 
     def new_word_quiz(self):
+        self.page.res_label.config(text="")
         eng_word = random.choice(list(self.words_dict.keys()))
         self.curr_ans = self.words_dict[eng_word]
 

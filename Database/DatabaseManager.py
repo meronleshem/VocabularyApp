@@ -1,7 +1,7 @@
 import sqlite3
 from Utils.DiffucltyEnum import Difficulty
 from Utils.Translator import translate_to_heb, get_word_examples
-
+from Utils.FileHandler import read_words_from_file
 
 class DatabaseManager:
     def __init__(self):
@@ -56,6 +56,11 @@ class DatabaseManager:
         self.conn.commit()
 
         print(f"{eng_word} was added!")
+
+    def add_from_file(self):
+        words_to_add = read_words_from_file()
+        for word in words_to_add:
+            self.add_word(word)
 
     def update_difficulty(self, eng_word, difficulty):
         self.cur.execute(f"UPDATE {self.table_name}"

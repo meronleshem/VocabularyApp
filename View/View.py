@@ -25,7 +25,7 @@ class ViewManager(tk.Tk):
         }
 
         self.curr_page = None
-        self.show_page(self.pages["quiz_page"])
+        self.show_page(self.pages["add_word_page"])
 
     def show_page(self, page):
         self.curr_page = page
