@@ -1,7 +1,7 @@
 import sqlite3
 from Utils.DiffucltyEnum import Difficulty
 from Utils.Translator import translate_to_heb, get_word_examples
-from Utils.FileHandler import read_words_from_file
+from Utils.FileHandler import read_words_from_file, extract_highlight_words_from_pdf
 
 
 class DatabaseManager:
@@ -82,6 +82,11 @@ class DatabaseManager:
         res = data.fetchone()
 
         return res is not None
+
+    def get_highlight_words_from_pdf(self):
+        words = extract_highlight_words_from_pdf("TestPdf.pdf")
+        for word in words:
+            print(word)
 
     def get_table_size(self):
         self.cur.execute(f"SELECT COUNT(*) FROM {self.table_name}")

@@ -46,13 +46,26 @@ class QuizPage(tk.Frame):
         self.check_boxes_frame.grid(row=1, column=4, padx=10, pady=10, sticky="nsew")
 
         self.check_easy = ttk.Checkbutton(self, text="Easy", variable=self.choice_easy)
-        # self.check_easy.place(x=150, y=50)
         self.check_easy.grid(row=9, column=2, padx=10, pady=10, sticky="w")
 
         self.check_medium = ttk.Checkbutton(self, text="Medium", variable=self.choice_medium)
         self.check_medium.grid(row=9, column=2, padx=70, pady=10, sticky="w")
         self.check_hard = ttk.Checkbutton(self, text="Hard", variable=self.choice_hard)
         self.check_hard.grid(row=9, column=2, padx=150, pady=10, sticky="w")
+
+        self.difficulty_choice = tk.StringVar(value="")
+        self.easy_btn = tb.Radiobutton(self, bootstyle="success-outline-toolbutton", variable=self.difficulty_choice
+                                       , value="Easy", text="Easy")
+        self.easy_btn.grid(row=10, column=2, padx=10, pady=10, sticky="w")
+        self.medium_btn = tb.Radiobutton(self, bootstyle="warning-outline-toolbutton", variable=self.difficulty_choice
+                                         , value="Medium", text="Medium")
+        self.medium_btn.grid(row=10, column=2, padx=70, pady=10, sticky="w")
+        self.hard_btn = tb.Radiobutton(self, bootstyle="danger-outline-toolbutton", variable=self.difficulty_choice
+                                         , value="Hard", text="Hard")
+        self.hard_btn.grid(row=10, column=2, padx=150, pady=10, sticky="w")
+
+        self.update_btn = tb.Button(self, text="Update Difficulty")
+        self.update_btn.grid(row=11, column=2, padx=45, pady=10, sticky="w")
 
     def show_options(self, eng_word, heb_ans, options_list):
         self.eng_word_label.config(text=eng_word)
