@@ -14,7 +14,8 @@ class AddWordController:
         self.page.add_word_btn.config(command=self.add_word)
         self.page.all_words_btn.config(command=self.switch_page)
         self.page.translate_btn.config(command=self.translate)
-        self.page.add_from_file_btn.config(command=self.add_from_file)
+        self.page.add_from_text_file_btn.config(command=self.add_from_text_file)
+        self.page.add_from_pdf_btn.config(command=self.add_from_pdf)
         self.page.quiz_btn.config(command=self.switch_to_quiz)
 
     def translate(self):
@@ -29,8 +30,11 @@ class AddWordController:
         eng_word = self.page.word_entry.get()
         self.model.add_word(eng_word)
 
-    def add_from_file(self):
+    def add_from_text_file(self):
         self.model.add_from_file()
+
+    def add_from_pdf(self):
+        self.model.add_highlight_words_from_pdf()
 
     def switch_to_quiz(self):
         self.view.show_page(self.view.pages["quiz_page"])

@@ -14,8 +14,11 @@ class AddWordPage(tk.Frame):
         self.add_word_btn = tk.Button(self, text="Add Word")
         self.add_word_btn.grid(row=4, column=2, padx=80, pady=10, sticky="w")
 
-        self.add_from_file_btn = tk.Button(self, text="Add Words From File")
-        self.add_from_file_btn.grid(row=5, column=2, padx=10, pady=10, sticky="we")
+        self.add_from_text_file_btn = tk.Button(self, text="Add Words From Text File")
+        self.add_from_text_file_btn.grid(row=5, column=2, padx=10, pady=10, sticky="we")
+
+        self.add_from_pdf_btn = tk.Button(self, text="Add Words From PDF")
+        self.add_from_pdf_btn.grid(row=6, column=2, padx=10, pady=10, sticky="we")
 
         self.translate_btn = tk.Button(self, text="Translate")
         self.translate_btn.grid(row=4, column=2, padx=10, pady=2, sticky="e")

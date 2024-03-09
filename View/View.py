@@ -8,7 +8,7 @@ from View.QuizPage import QuizPage
 class ViewManager(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Eden")
+        self.title("Vocabulary App")
         self.geometry("850x500")
 
         self.style = Style("yeti")

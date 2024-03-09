@@ -83,10 +83,10 @@ class DatabaseManager:
 
         return res is not None
 
-    def get_highlight_words_from_pdf(self):
-        words = extract_highlight_words_from_pdf("TestPdf.pdf")
-        for word in words:
-            print(word)
+    def add_highlight_words_from_pdf(self):
+        words_to_add = extract_highlight_words_from_pdf("TestPdf.pdf")
+        for word in words_to_add:
+            self.add_word(word)
 
     def get_table_size(self):
         self.cur.execute(f"SELECT COUNT(*) FROM {self.table_name}")
