@@ -1,6 +1,9 @@
 from typing import List, Tuple
-
 import fitz  # install with 'pip install pymupdf'
+import string
+
+compressed_alphabet = string.ascii_lowercase + string.ascii_uppercase
+alphabet_list = [char for char in compressed_alphabet]
 
 
 def _parse_highlight(annot: fitz.Annot, wordlist: List[Tuple[float, float, float, float, str, int, int, int]]) -> str:
@@ -46,14 +49,12 @@ def remove_symbols_from_list(word_list):
 
 
 def remove_symbols(word):
-    symbols = [',', '.', ':']  # List of symbols to remove
-
     # Remove symbols from the start of the word
-    while word and word[0] in symbols:
+    while word and word[0] not in alphabet_list:
         word = word[1:]
 
     # Remove symbols from the end of the word
-    while word and word[-1] in symbols:
+    while word and word[-1] not in alphabet_list:
         word = word[:-1]
 
     return word
