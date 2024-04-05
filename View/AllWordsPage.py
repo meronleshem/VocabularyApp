@@ -11,33 +11,37 @@ class AllWordsPage(tk.Frame):
 
         custom_font = ("Helvetica", 12)
 
-        self.word_listbox = tk.Listbox(self, width=100, height=10, font=custom_font)
-        self.word_listbox.grid(row=5, column=2, padx=30, pady=10)
-        self.word_listbox.bind("<Double-Button-1>", self.on_double_click)
+       # self.word_listbox = tk.Listbox(self, width=90, height=10, font=custom_font)
+       # self.word_listbox.grid(row=5, column=2, padx=30, pady=10)
+       # self.word_listbox.bind("<Double-Button-1>", self.on_double_click)
 
-        # style = ttk.Style()
-        # style.configure("Custom.Treeview", background="#f0f0f0")
-        #
-        # self.tree = ttk.Treeview(self, columns=("English", "Hebrew"),  style="Custom.Treeview")
-        #
-        # self.tree.heading("English", text="English", anchor="w")
-        # self.tree.heading("Hebrew", text="Hebrew", anchor="w")
-        #
-        # self.tree.grid(row=5, column=2, sticky="ns")
+        style = ttk.Style()
+        style.configure("Custom.Treeview", background="#f0f0f0")
+
+        self.tree = ttk.Treeview(self, columns=("English", "Hebrew", "Difficulty"),  style="Custom.Treeview", show='headings')
+
+        self.tree.heading("English", text="English", anchor="w")
+        self.tree.heading("Hebrew", text="Hebrew", anchor="w")
+        self.tree.heading("Difficulty", text="Difficulty", anchor="w")
+        self.tree.column("English", width=150)
+        self.tree.column("Hebrew", width=500)
+        self.tree.column("Difficulty", width=100)
+        self.tree.grid(row=5, column=2, sticky="nsew")
 
         self.button = tk.Button(self, text="Add Word")
         self.button.grid(row=6, column=2)
 
+        self.word_expand_label = tk.Label(self, text="")
+        self.word_expand_label.grid(row=7, column=2)
+
     def on_double_click(self, event):
-        index =  self.word_listbox.curselection()
-        if index:  # Check if an item is selected
-            # Get the text of the selected item
-            item_text =  self.word_listbox.get(index)
-            # Print the text of the selected item
+        index = self.word_listbox.curselection()
+        if index:
+            item_text = self.word_listbox.get(index)
             print(item_text)
 
     def show_words(self, word_list):
-        # for eng_word, heb_word in word_list:
-        #     self.tree.insert("", "end", values=(eng_word, heb_word))
-        for eng_word, heb_word in word_list:
-            self.word_listbox.insert(tk.END, f"{eng_word} - {heb_word}")
+         for eng_word, heb_word, difficulty in word_list:
+             self.tree.insert("", "end", values=(eng_word, heb_word, difficulty))
+        #for eng_word, heb_word in word_list:
+        #    self.word_listbox.insert(tk.END, f"{eng_word} - {heb_word}")

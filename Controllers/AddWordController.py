@@ -40,7 +40,7 @@ class AddWordController:
         self.view.show_page(self.view.pages["quiz_page"])
 
     def switch_page(self):
-        words_list = self.model.get_data()
+        words_list = self.model.get_full_data()
         sorted_list = sorted(words_list, key=lambda x: x[0])
         self.view.pages["all_words_page"].show_words(sorted_list)
         self.view.show_page(self.view.pages["all_words_page"])

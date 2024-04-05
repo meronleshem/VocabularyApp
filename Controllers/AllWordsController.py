@@ -13,7 +13,7 @@ class AllWordsController:
         self.page.button.config(command=self.switch_page)
 
     def show_words(self):
-        words_list = self.model.get_data()
+        words_list = self.model.get_full_data()
         self.page.show_words(words_list)
 
     def switch_page(self):
