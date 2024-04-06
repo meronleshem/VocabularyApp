@@ -8,15 +8,17 @@ alphabet_list = [char for char in compressed_alphabet]
 
 def _parse_highlight(annot: fitz.Annot, wordlist: List[Tuple[float, float, float, float, str, int, int, int]]) -> str:
     points = annot.vertices
-    quad_count = int(len(points) / 4)
-    sentences = []
-    for i in range(quad_count):
-        # where the highlighted part is
-        r = fitz.Quad(points[i * 4 : i * 4 + 4]).rect
+    sentence = ""
+    if points:
+        quad_count = int(len(points) / 4)
+        sentences = []
+        for i in range(quad_count):
+            # where the highlighted part is
+            r = fitz.Quad(points[i * 4 : i * 4 + 4]).rect
 
-        words = [w for w in wordlist if fitz.Rect(w[:4]).intersects(r)]
-        sentences.append(" ".join(w[4] for w in words))
-    sentence = " ".join(sentences)
+            words = [w for w in wordlist if fitz.Rect(w[:4]).intersects(r)]
+            sentences.append(" ".join(w[4] for w in words))
+        sentence = " ".join(sentences)
     return sentence
 
 

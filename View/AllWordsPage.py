@@ -19,7 +19,7 @@ class AllWordsPage(tk.Frame):
         style.configure("Custom.Treeview", background="#f0f0f0")
 
         self.tree = ttk.Treeview(self, columns=("English", "Hebrew", "Difficulty"),  style="Custom.Treeview", show='headings')
-
+       # self.tree.bind('<Double-1>', self.on_double_click)
         self.tree.heading("English", text="English", anchor="w")
         self.tree.heading("Hebrew", text="Hebrew", anchor="w")
         self.tree.heading("Difficulty", text="Difficulty", anchor="w")
@@ -34,11 +34,17 @@ class AllWordsPage(tk.Frame):
         self.word_expand_label = tk.Label(self, text="")
         self.word_expand_label.grid(row=7, column=2)
 
+    # def on_double_click(self, event):
+    #     index = self.word_listbox.curselection()
+    #     if index:
+    #         item_text = self.word_listbox.get(index)
+    #         print(item_text)
+
     def on_double_click(self, event):
-        index = self.word_listbox.curselection()
-        if index:
-            item_text = self.word_listbox.get(index)
-            print(item_text)
+        item = self.tree.selection()[0]
+        values = self.tree.item(item, 'values')
+        # Do something with the values, for example print them
+        print(values)
 
     def show_words(self, word_list):
          for eng_word, heb_word, difficulty in word_list:

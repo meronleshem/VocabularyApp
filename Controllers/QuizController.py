@@ -49,6 +49,8 @@ class QuizController:
 
     def filter_difficulties(self):
         self.difficulties.clear()
+        if self.page.choice_new.get() == 1:
+            self.difficulties.append(Difficulty.NEW_WORD.name)
         if self.page.choice_easy.get() == 1:
             self.difficulties.append(Difficulty.EASY.name)
         if self.page.choice_medium.get() == 1:
@@ -56,28 +58,29 @@ class QuizController:
         if self.page.choice_hard.get() == 1:
             self.difficulties.append(Difficulty.HARD.name)
 
-    def color_label_by_difficulty(self, difficuly):
+    def color_label_by_difficulty(self, difficulty):
         color = ""
-        if difficuly == Difficulty.EASY.name:
+        if difficulty == Difficulty.EASY.name:
             color = "successes"
-        elif difficuly == Difficulty.MEDIUM.name:
+        elif difficulty == Difficulty.MEDIUM.name:
             color = "warning"
         else:
             color = "danger"
 
         self.page.eng_word_label.config(bootstyle=color)
 
-
-
     def new_word_quiz(self):
         self.filter_difficulties()
         self.page.res_label.config(text="")
         filtered_words = list(self.words_dict.keys())
         filtered_words = [word for word in filtered_words if self.words_dict[word][1] in self.difficulties]
+        if len(filtered_words) == 0:
+            return
+
         self.curr_eng_word = random.choice(filtered_words)
         self.curr_ans = self.words_dict[self.curr_eng_word][0]
-        difficuly_word = self.words_dict[self.curr_eng_word][1]
-        self.color_label_by_difficulty(difficuly_word)
+        difficulty_word = self.words_dict[self.curr_eng_word][1]
+        self.color_label_by_difficulty(difficulty_word)
         # Get three other random values
         other_options = random.sample(list(self.words_dict.values()), 3)
         other_options_words = [value[0] for value in other_options]

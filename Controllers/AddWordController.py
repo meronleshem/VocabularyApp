@@ -1,7 +1,7 @@
 from View.View import ViewManager
 from Database.DatabaseManager import DatabaseManager
 from Utils.Translator import translate_to_heb, get_word_examples
-
+from tkinter import filedialog
 
 class AddWordController:
     def __init__(self, model: DatabaseManager, view: ViewManager):
@@ -34,7 +34,9 @@ class AddWordController:
         self.model.add_from_file()
 
     def add_from_pdf(self):
-        self.model.add_highlight_words_from_pdf()
+        filepath = filedialog.askopenfilename(filetypes=[("PDF Files", "*.pdf")])
+        if filepath:
+            self.model.add_highlight_words_from_pdf(filepath)
 
     def switch_to_quiz(self):
         self.view.show_page(self.view.pages["quiz_page"])

@@ -53,7 +53,7 @@ class DatabaseManager:
         word_id = num_of_words + 1
         examples = get_word_examples(eng_word)
 
-        word_data = (word_id, eng_word.lower(), heb_word, examples, Difficulty.MEDIUM.name)
+        word_data = (word_id, eng_word.lower(), heb_word, examples, Difficulty.NEW_WORD.name)
         self.cur.execute(f"INSERT INTO {self.table_name}"
                          f" (id, engWord, hebWord, examples, difficulty) VALUES (?, ?, ?, ?, ?)", word_data)
 
@@ -83,14 +83,20 @@ class DatabaseManager:
 
         return res is not None
 
-    def add_highlight_words_from_pdf(self):
-        words_to_add = extract_highlight_words_from_pdf("TestPdf.pdf")
+    def add_highlight_words_from_pdf(self, filepath):
+        words_to_add = extract_highlight_words_from_pdf(filepath)
         for word in words_to_add:
             self.add_word(word)
 
     def get_table_size(self):
         self.cur.execute(f"SELECT COUNT(*) FROM {self.table_name}")
         return self.cur.fetchone()[0]
+
+    def get_word_details(self, eng_word):
+        data = self.cur.execute(f"SELECT * FROM {self.table_name} WHERE engWord = ?", (eng_word.lower(),))
+
+        for item in data:
+            return item
 
     def close_db_connection(self):
         self.cur.close()

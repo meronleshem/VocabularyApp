@@ -38,6 +38,7 @@ class QuizPage(tk.Frame):
         self.res_label = tb.Label(self, text="", font=("Arial", 15))
         self.res_label.grid(row=8, column=2, padx=50, pady=20, sticky="w")
 
+        self.choice_new = tk.IntVar(value=1)
         self.choice_easy = tk.IntVar(value=1)
         self.choice_medium = tk.IntVar(value=1)
         self.choice_hard = tk.IntVar(value=1)
@@ -45,13 +46,14 @@ class QuizPage(tk.Frame):
         self.check_boxes_frame = tk.Frame()
         self.check_boxes_frame.grid(row=1, column=4, padx=10, pady=10, sticky="nsew")
 
-        self.check_easy = ttk.Checkbutton(self, text="Easy", variable=self.choice_easy)
+        self.check_easy = ttk.Checkbutton(self, text="New", variable=self.choice_new)
         self.check_easy.grid(row=9, column=2, padx=10, pady=10, sticky="w")
-
+        self.check_easy = ttk.Checkbutton(self, text="Easy", variable=self.choice_easy)
+        self.check_easy.grid(row=9, column=2, padx=70, pady=10, sticky="w")
         self.check_medium = ttk.Checkbutton(self, text="Medium", variable=self.choice_medium)
-        self.check_medium.grid(row=9, column=2, padx=70, pady=10, sticky="w")
+        self.check_medium.grid(row=9, column=2, padx=130, pady=10, sticky="w")
         self.check_hard = ttk.Checkbutton(self, text="Hard", variable=self.choice_hard)
-        self.check_hard.grid(row=9, column=2, padx=150, pady=10, sticky="w")
+        self.check_hard.grid(row=9, column=2, padx=210, pady=10, sticky="w")
 
         self.difficulty_choice = tk.StringVar(value="")
         self.easy_btn = tb.Radiobutton(self, bootstyle="success-outline-toolbutton", variable=self.difficulty_choice
