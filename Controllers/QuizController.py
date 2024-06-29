@@ -20,7 +20,10 @@ class QuizController:
 
     def bind(self):
         self.page.next_btn.config(command=self.new_word_quiz)
-        self.page.submit_btn.config(command=self.check_answer)
+        self.page.option1_btn.config(command=lambda b=self.page.option1_btn: self.check_answer(b))
+        self.page.option2_btn.config(command=lambda b=self.page.option2_btn: self.check_answer(b))
+        self.page.option3_btn.config(command=lambda b=self.page.option3_btn: self.check_answer(b))
+        self.page.option4_btn.config(command=lambda b=self.page.option4_btn: self.check_answer(b))
         self.page.update_btn.config(command=self.update_difficulty)
 
     def update_difficulty(self):
@@ -41,8 +44,9 @@ class QuizController:
         for eng_word, heb_word, difficulty in words_list:
             self.words_dict[eng_word] = (heb_word, difficulty)
 
-    def check_answer(self):
-        if self.page.choice.get() == self.curr_ans:
+    def check_answer(self, button):
+        selected_ans = button.cget("text")
+        if selected_ans == self.curr_ans:
             self.page.res_label.config(text="Correct!", bootstyle="success")
         else:
             self.page.res_label.config(text="Mistake! Try Again", bootstyle="danger")

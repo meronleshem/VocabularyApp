@@ -11,7 +11,7 @@ class ViewManager(tk.Tk):
         self.title("Vocabulary App")
         self.geometry("850x500")
 
-        self.style = Style("yeti")
+        self.style = Style("sandstone")
 
         self.container = tk.Frame(self)
         self.container.grid(row=0, column=0, sticky="nsew")
@@ -29,6 +29,6 @@ class ViewManager(tk.Tk):
 
     def show_page(self, page):
         self.curr_page = page
-        self.curr_page.grid(row=0, column=0, sticky="nsew")
+        self.curr_page.grid(row=0, column=1, padx=50, pady=30, sticky="nsew")
 
         self.curr_page.tkraise()

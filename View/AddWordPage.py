@@ -29,11 +29,11 @@ class AddWordPage(tk.Frame):
         self.quiz_btn = tk.Button(self, text="Quiz")
         self.quiz_btn.grid(row=8, column=2, padx=10, pady=10, sticky="we")
 
-        self.translate_frame = tk.Frame(parent, background="blue", padx=20, pady=20)
-        self.translate_frame.grid(row=0, column=3)
+        self.translate_frame = tk.Frame(parent, background="blue")
+        self.translate_frame.grid(row=0, column=2)
 
         self.translate_word_label = tk.Label(self.translate_frame, text="", anchor="w", justify="left", font=("Arial", 11))
-        self.translate_word_label.grid(row=1, column=3, padx=5, pady=5, sticky="we")
+        self.translate_word_label.grid(row=1, column=0, pady=5, sticky="we")
 
         self.translate_word_examples = tk.Label(self.translate_frame, text="", anchor="w", justify="left", font=("Arial", 11))
-        self.translate_word_examples.grid(row=4, column=3, padx=5, pady=5, sticky="we")
+        self.translate_word_examples.grid(row=4, column=0, pady=5, sticky="we")

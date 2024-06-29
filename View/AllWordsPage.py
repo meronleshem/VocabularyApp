@@ -5,10 +5,9 @@ from tkinter import ttk
 class AllWordsPage(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-
         self.label = tk.Label(self, text="All Words Page")
         self.label.grid(row=4, column=2)
-
+        # Draw a rectangle on the canvas
         custom_font = ("Helvetica", 12)
 
        # self.word_listbox = tk.Listbox(self, width=90, height=10, font=custom_font)

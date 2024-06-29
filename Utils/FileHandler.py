@@ -51,11 +51,9 @@ def remove_symbols_from_list(word_list):
 
 
 def remove_symbols(word):
-    # Remove symbols from the start of the word
     while word and word[0] not in alphabet_list:
         word = word[1:]
 
-    # Remove symbols from the end of the word
     while word and word[-1] not in alphabet_list:
         word = word[:-1]
 
