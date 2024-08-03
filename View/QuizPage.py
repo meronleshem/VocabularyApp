@@ -1,6 +1,37 @@
 import tkinter as tk
 from tkinter import ttk
 import ttkbootstrap as tb
+from tkinter import simpledialog
+
+
+class DifficultyDialog(simpledialog.Dialog):
+    def body(self, master):
+        tk.Label(master, text="Choose difficulty:").pack(pady=10)
+
+        self.result = None
+
+        button_frame = tk.Frame(master)
+        button_frame.pack(pady=10)
+
+        easy_button = tb.Button(button_frame, bootstyle="success-outline-toolbutton", text="Easy", width=10, command=lambda: self.set_result("Easy"))
+        easy_button.pack(side=tk.LEFT, padx=5)
+
+        medium_button = tb.Button(button_frame,bootstyle="warning-outline-toolbutton", text="Medium", width=10, command=lambda: self.set_result("Medium"))
+        medium_button.pack(side=tk.LEFT, padx=5)
+
+        hard_button = tb.Button(button_frame,bootstyle="danger-outline-toolbutton", text="Hard", width=10, command=lambda: self.set_result("Hard"))
+        hard_button.pack(side=tk.LEFT, padx=5)
+
+    def set_result(self, value):
+        self.result = value
+        self.ok()
+
+    def buttonbox(self):
+        # Override this method to do nothing, effectively removing the default OK and Cancel buttons
+        pass
+
+    def apply(self):
+        pass
 
 
 class QuizPage(tk.Frame):
@@ -33,7 +64,7 @@ class QuizPage(tk.Frame):
         self.next_btn.grid(row=7, column=2, padx=10, pady=10, sticky="w")
 
         self.res_label = tb.Label(self, text="", font=("Arial", 15))
-        self.res_label.grid(row=8, column=2, padx=50, pady=20, sticky="w")
+        self.res_label.grid(row=8, column=2, padx=50, pady=10, sticky="w")
 
         self.choice_new = tk.IntVar(value=1)
         self.choice_easy = tk.IntVar(value=1)
@@ -52,19 +83,8 @@ class QuizPage(tk.Frame):
         self.check_hard = ttk.Checkbutton(self, text="Hard", variable=self.choice_hard)
         self.check_hard.grid(row=9, column=2, padx=210, pady=10, sticky="w")
 
-        self.difficulty_choice = tk.StringVar(value="")
-        self.easy_btn = tb.Radiobutton(self, bootstyle="success-outline-toolbutton", variable=self.difficulty_choice
-                                       , value="Easy", text="Easy")
-        self.easy_btn.grid(row=10, column=2, padx=10, pady=10, sticky="w")
-        self.medium_btn = tb.Radiobutton(self, bootstyle="warning-outline-toolbutton", variable=self.difficulty_choice
-                                         , value="Medium", text="Medium")
-        self.medium_btn.grid(row=10, column=2, padx=70, pady=10, sticky="w")
-        self.hard_btn = tb.Radiobutton(self, bootstyle="danger-outline-toolbutton", variable=self.difficulty_choice
-                                         , value="Hard", text="Hard")
-        self.hard_btn.grid(row=10, column=2, padx=150, pady=10, sticky="w")
-
         self.update_btn = tb.Button(self, text="Update Difficulty")
-        self.update_btn.grid(row=11, column=2, padx=45, pady=10, sticky="w")
+        self.update_btn.grid(row=10, column=2, padx=45, pady=10, sticky="w")
 
     def show_options(self, eng_word, heb_ans, options_list):
         self.eng_word_label.config(text=eng_word)

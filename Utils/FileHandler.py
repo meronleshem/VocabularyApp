@@ -60,10 +60,10 @@ def remove_symbols(word):
     return word
 
 
-def read_words_from_file():
+def read_words_from_file(filepath):
+
     words_to_add = []
-    file_name = "wordsToAdd.txt"
-    with open(file_name, 'r') as file:
+    with open(filepath, 'r') as file:
         for line in file:
             words_to_add.append(line.strip())
 

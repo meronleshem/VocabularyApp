@@ -16,15 +16,19 @@ class DatabaseManager:
                         engWord TEXT,
                         hebWord TEXT,
                         examples TEXT,
-                        difficulty TEXT)''')
+                        difficulty TEXT,
+                        group_name TEXT)''')
 
-        raw_data1 = (1, "remorse", translate_to_heb("remorse"), get_word_examples("remorse"), Difficulty.EASY.name)
-        raw_data2 = (2, "chore", translate_to_heb("chore"), get_word_examples("chore"), Difficulty.EASY.name)
+        raw_data1 = (1, "remorse", translate_to_heb("remorse"), get_word_examples("remorse"), Difficulty.EASY.name, "The_Silent_Patient_1")
+        raw_data2 = (2, "chore", translate_to_heb("chore"), get_word_examples("chore"), Difficulty.EASY.name, "The_Silent_Patient_1")
+        raw_data3 = (3, "more", translate_to_heb("more"), get_word_examples("more"), Difficulty.EASY.name, "The_Silent_Patient_1")
 
-        self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty)"
-                         " VALUES (?, ?, ?, ?, ?)", raw_data1)
-        self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty)"
-                         " VALUES (?, ?, ?, ?, ?)", raw_data2)
+        self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty, group_name)"
+                         " VALUES (?, ?, ?, ?, ?, ?)", raw_data1)
+        self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty, group_name)"
+                         " VALUES (?, ?, ?, ?, ?, ?)", raw_data2)
+        self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty, group_name)"
+                         " VALUES (?, ?, ?, ?, ?, ?)", raw_data3)
         self.conn.commit()
 
     def print_db_data(self):
@@ -37,9 +41,9 @@ class DatabaseManager:
         return self.cur.execute(f"SELECT engWord, hebWord FROM {self.table_name}")
 
     def get_full_data(self):
-        return self.cur.execute(f"SELECT engWord, hebWord, difficulty FROM {self.table_name}")
+        return self.cur.execute(f"SELECT engWord, hebWord, difficulty, group_name FROM {self.table_name}")
 
-    def add_word(self, eng_word):
+    def add_word(self, eng_word, group_name="New_Words"):
         if self.is_word_exists(eng_word):
             print(f"{eng_word} is already exists. Abort adding")
             return
@@ -53,18 +57,18 @@ class DatabaseManager:
         word_id = num_of_words + 1
         examples = get_word_examples(eng_word)
 
-        word_data = (word_id, eng_word.lower(), heb_word, examples, Difficulty.NEW_WORD.name)
+        word_data = (word_id, eng_word.lower(), heb_word, examples, Difficulty.NEW_WORD.name, group_name)
         self.cur.execute(f"INSERT INTO {self.table_name}"
-                         f" (id, engWord, hebWord, examples, difficulty) VALUES (?, ?, ?, ?, ?)", word_data)
+                         f" (id, engWord, hebWord, examples, difficulty, group_name) VALUES (?, ?, ?, ?, ?, ?)", word_data)
 
         self.conn.commit()
 
         print(f"{eng_word} was added!")
 
-    def add_from_file(self):
-        words_to_add = read_words_from_file()
+    def add_from_file(self, filepath, group_name):
+        words_to_add = read_words_from_file(filepath)
         for word in words_to_add:
-            self.add_word(word)
+            self.add_word(word, group_name)
 
     def update_difficulty(self, eng_word, difficulty):
         self.cur.execute(f"UPDATE {self.table_name}"

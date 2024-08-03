@@ -4,7 +4,9 @@ from Controllers.AppController import AppController
 
 if __name__ == '__main__':
 
+
     db = DatabaseManager()
+    #db.create_db()
     view = ViewManager()
 
     controller = AppController(db, view)

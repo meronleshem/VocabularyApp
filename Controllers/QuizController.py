@@ -1,6 +1,7 @@
 from View.View import ViewManager
 from Database.DatabaseManager import DatabaseManager
 from Utils.DiffucltyEnum import Difficulty
+from View.QuizPage import DifficultyDialog
 import random
 
 
@@ -27,21 +28,13 @@ class QuizController:
         self.page.update_btn.config(command=self.update_difficulty)
 
     def update_difficulty(self):
-        new_difficulty = ""
-        if self.page.difficulty_choice.get() == "Easy":
-            new_difficulty = Difficulty.EASY.name
-        elif self.page.difficulty_choice.get() == "Medium":
-            new_difficulty = Difficulty.MEDIUM.name
-        elif self.page.difficulty_choice.get() == "Hard":
-            new_difficulty = Difficulty.HARD.name
-        else:
-            return
-
+        dialog = DifficultyDialog(self.page)
+        new_difficulty = dialog.result
         self.model.update_difficulty(self.curr_eng_word, new_difficulty)
 
     def init_words_dict(self):
         words_list = self.model.get_full_data()
-        for eng_word, heb_word, difficulty in words_list:
+        for eng_word, heb_word, difficulty, group_name in words_list:
             self.words_dict[eng_word] = (heb_word, difficulty)
 
     def check_answer(self, button):

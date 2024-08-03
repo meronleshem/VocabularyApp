@@ -17,14 +17,16 @@ class AllWordsPage(tk.Frame):
         style = ttk.Style()
         style.configure("Custom.Treeview", background="#f0f0f0")
 
-        self.tree = ttk.Treeview(self, columns=("English", "Hebrew", "Difficulty"),  style="Custom.Treeview", show='headings')
+        self.tree = ttk.Treeview(self, columns=("English", "Hebrew", "Difficulty", "Group"),  style="Custom.Treeview", show='headings')
        # self.tree.bind('<Double-1>', self.on_double_click)
         self.tree.heading("English", text="English", anchor="w")
         self.tree.heading("Hebrew", text="Hebrew", anchor="w")
         self.tree.heading("Difficulty", text="Difficulty", anchor="w")
+        self.tree.heading("Group", text="Group", anchor="w")
         self.tree.column("English", width=150)
-        self.tree.column("Hebrew", width=500)
+        self.tree.column("Hebrew", width=400)
         self.tree.column("Difficulty", width=100)
+        self.tree.column("Group", width=100)
         self.tree.grid(row=5, column=2, sticky="nsew")
 
         self.button = tk.Button(self, text="Add Word")
@@ -46,7 +48,7 @@ class AllWordsPage(tk.Frame):
         print(values)
 
     def show_words(self, word_list):
-         for eng_word, heb_word, difficulty in word_list:
-             self.tree.insert("", "end", values=(eng_word, heb_word, difficulty))
+         for eng_word, heb_word, difficulty, group_name in word_list:
+             self.tree.insert("", "end", values=(eng_word, heb_word, difficulty, group_name))
         #for eng_word, heb_word in word_list:
         #    self.word_listbox.insert(tk.END, f"{eng_word} - {heb_word}")
