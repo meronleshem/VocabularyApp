@@ -30,6 +30,15 @@ class QuizController:
     def update_difficulty(self):
         dialog = DifficultyDialog(self.page)
         new_difficulty = dialog.result
+        if self.page.difficulty_choice.get() == "Easy":
+            new_difficulty = Difficulty.EASY.name
+        elif self.page.difficulty_choice.get() == "Medium":
+            new_difficulty = Difficulty.MEDIUM.name
+        elif self.page.difficulty_choice.get() == "Hard":
+            new_difficulty = Difficulty.HARD.name
+        else:
+            return
+
         self.model.update_difficulty(self.curr_eng_word, new_difficulty)
 
     def init_words_dict(self):

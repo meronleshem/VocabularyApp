@@ -48,7 +48,10 @@ class AllWordsPage(tk.Frame):
         print(values)
 
     def show_words(self, word_list):
-         for eng_word, heb_word, difficulty, group_name in word_list:
-             self.tree.insert("", "end", values=(eng_word, heb_word, difficulty, group_name))
-        #for eng_word, heb_word in word_list:
-        #    self.word_listbox.insert(tk.END, f"{eng_word} - {heb_word}")
+        self.clear_treeview()
+        for eng_word, heb_word, difficulty, group_name in word_list:
+            self.tree.insert("", "end", values=(eng_word, heb_word, difficulty, group_name))
+
+    def clear_treeview(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
