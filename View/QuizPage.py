@@ -4,6 +4,22 @@ import ttkbootstrap as tb
 from tkinter import simpledialog
 
 
+class GroupSelectionDialog(simpledialog.Dialog):
+    def __init__(self, parent, groups):
+        self.groups = groups
+        self.group_vars = {}
+        super().__init__(parent, title="Select Groups")
+
+    def body(self, master):
+        for group in self.groups:
+            var = tk.BooleanVar()
+            checkbox = tk.Checkbutton(master, text=group, variable=var)
+            checkbox.pack(anchor='w')
+            self.group_vars[group] = var
+
+    def apply(self):
+        self.selected_groups = [group for group, var in self.group_vars.items() if var.get()]
+
 class DifficultyDialog(simpledialog.Dialog):
     def body(self, master):
         tk.Label(master, text="Choose difficulty:").pack(pady=10)
@@ -85,6 +101,9 @@ class QuizPage(tk.Frame):
 
         self.update_btn = tb.Button(self, text="Update Difficulty")
         self.update_btn.grid(row=10, column=2, padx=45, pady=10, sticky="w")
+
+        self.select_groups_btn = tk.Button(self, text="Select Groups")
+        self.select_groups_btn.grid(row=11, column=2, padx=45, pady=10, sticky="w")
 
     def show_options(self, eng_word, heb_ans, options_list):
         self.eng_word_label.config(text=eng_word)

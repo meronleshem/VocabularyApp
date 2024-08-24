@@ -1,7 +1,7 @@
 from View.View import ViewManager
 from Database.DatabaseManager import DatabaseManager
 from Utils.DiffucltyEnum import Difficulty
-from View.QuizPage import DifficultyDialog
+from View.QuizPage import DifficultyDialog, GroupSelectionDialog
 import random
 
 
@@ -26,6 +26,7 @@ class QuizController:
         self.page.option3_btn.config(command=lambda b=self.page.option3_btn: self.check_answer(b))
         self.page.option4_btn.config(command=lambda b=self.page.option4_btn: self.check_answer(b))
         self.page.update_btn.config(command=self.update_difficulty)
+        self.page.select_groups_btn.config(command=self.select_groups)
 
     def update_difficulty(self):
         dialog = DifficultyDialog(self.page)
@@ -74,6 +75,27 @@ class QuizController:
             color = "danger"
 
         self.page.eng_word_label.config(bootstyle=color)
+
+    def select_groups(self):
+        all_groups_names = self.model.get_all_groups_names()
+        groups = [row[0] for row in all_groups_names]
+
+        # Open the dialog to select groups
+        dialog = GroupSelectionDialog(self.page, groups)
+
+        # Get the selected groups from the dialog
+        selected_groups = getattr(dialog, 'selected_groups', [])
+
+        if selected_groups:
+            # Query to return all data except 'examples'
+            self.words_by_groups = self.model.get_words_by_groups(selected_groups)
+
+            for word in self.words_by_groups:
+                print(word)
+
+            self.words_dict = {}
+            for eng_word, heb_word, difficulty, group_name in self.words_by_groups:
+                self.words_dict[eng_word] = (heb_word, difficulty)
 
     def new_word_quiz(self):
         self.filter_difficulties()

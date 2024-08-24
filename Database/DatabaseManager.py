@@ -22,6 +22,7 @@ class DatabaseManager:
         raw_data1 = (1, "remorse", translate_to_heb("remorse"), get_word_examples("remorse"), Difficulty.EASY.name, "The_Silent_Patient_1")
         raw_data2 = (2, "chore", translate_to_heb("chore"), get_word_examples("chore"), Difficulty.EASY.name, "The_Silent_Patient_1")
         raw_data3 = (3, "more", translate_to_heb("more"), get_word_examples("more"), Difficulty.EASY.name, "The_Silent_Patient_1")
+        raw_data4 = (4, "vigour", translate_to_heb("vigour"), get_word_examples("vigour"), Difficulty.EASY.name, "The_Silent_Patient_1")
 
         self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty, group_name)"
                          " VALUES (?, ?, ?, ?, ?, ?)", raw_data1)
@@ -29,6 +30,8 @@ class DatabaseManager:
                          " VALUES (?, ?, ?, ?, ?, ?)", raw_data2)
         self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty, group_name)"
                          " VALUES (?, ?, ?, ?, ?, ?)", raw_data3)
+        self.cur.execute("INSERT INTO vocabulary (id, engWord, hebWord, examples, difficulty, group_name)"
+                         " VALUES (?, ?, ?, ?, ?, ?)", raw_data4)
         self.conn.commit()
 
     def print_db_data(self):
@@ -89,8 +92,9 @@ class DatabaseManager:
 
     def add_highlight_words_from_pdf(self, filepath):
         words_to_add = extract_highlight_words_from_pdf(filepath)
-        for word in words_to_add:
-            self.add_word(word)
+        for word, pack in words_to_add:
+            group_name = f"The Blade Itself {pack}"
+            self.add_word(word, group_name)
 
     def get_table_size(self):
         self.cur.execute(f"SELECT COUNT(*) FROM {self.table_name}")
@@ -101,6 +105,15 @@ class DatabaseManager:
 
         for item in data:
             return item
+
+    def get_words_by_groups(self, selected_groups):
+        query = f"SELECT engWord, hebWord, difficulty, group_name FROM vocabulary WHERE group_name IN ({','.join('?' for _ in selected_groups)})"
+        self.cur.execute(query, selected_groups)
+        return self.cur.fetchall()
+
+    def get_all_groups_names(self):
+        self.cur.execute("SELECT DISTINCT group_name FROM vocabulary")
+        return self.cur.fetchall()
 
     def close_db_connection(self):
         self.cur.close()

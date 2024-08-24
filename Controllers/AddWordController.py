@@ -42,9 +42,9 @@ class AddWordController:
     def add_from_pdf(self):
         filepath = filedialog.askopenfilename(filetypes=[("PDF Files", "*.pdf")])
         if filepath:
-            group_name = simpledialog.askstring("Input", "Enter the group name:")
+            #group_name = simpledialog.askstring("Input", "Enter the group name:")
 
-            self.model.add_highlight_words_from_pdf(filepath, group_name)
+            self.model.add_highlight_words_from_pdf(filepath)
 
     def switch_to_quiz(self):
         self.view.show_page(self.view.pages["quiz_page"])

@@ -30,24 +30,32 @@ def handle_page(page):
     annot = page.first_annot
     while annot:
         if annot.type[0] == 8:
-            highlights.append(_parse_highlight(annot, wordlist))
+            word = _parse_highlight(annot, wordlist)
+            clean_word = remove_symbols(word)
+            highlights.append(clean_word)
         annot = annot.next
     return highlights
+
+
+def get_chapter_by_page_num(chapters_list, page_num):
+    for chapter, first_page, last_page in chapters_list:
+        if first_page <= page_num <= last_page:
+            return chapter
+
+    return ""
 
 
 def extract_highlight_words_from_pdf(filepath: str) -> List:
     doc = fitz.open(filepath)
 
     highlights = []
-    for page in doc:
+    for page_num in range(len(doc)):
+        page = doc.load_page(page_num)
         highlights += handle_page(page)
 
-    return remove_symbols_from_list(highlights)
-
-
-def remove_symbols_from_list(word_list):
-    cleaned_list = [remove_symbols(word) for word in word_list]
-    return cleaned_list
+    pack_size = 40
+    packed_list = [(word, pack_num // pack_size + 1) for pack_num, word in enumerate(highlights)]
+    return packed_list
 
 
 def remove_symbols(word):
@@ -58,6 +66,44 @@ def remove_symbols(word):
         word = word[:-1]
 
     return word
+
+
+def extract_chapters_by_font_size(pdf_path):
+    # Open the PDF file
+    doc = fitz.open(pdf_path)
+    chapters = []
+
+    for page_num in range(len(doc)):
+        page = doc.load_page(page_num)
+        blocks = page.get_text("dict")["blocks"]
+
+        for block in blocks:
+            if "lines" in block:
+                for line in block["lines"]:
+                    for span in line["spans"]:
+                        text = span["text"].strip()
+                        font_size = span["size"]
+
+                        # Assuming headings are the largest text on the page
+                        if font_size > 15 and len(text) > 0:  # Adjust the font size threshold as needed
+                            chapters.append((page_num + 1, text, font_size))
+
+    return chapters
+
+
+def get_chapter_list_with_page_range(pdf_path):
+    chapters = extract_chapters_by_font_size(pdf_path)
+
+    chapters_list_page_range = []
+    for i in range(len(chapters) - 1):
+        page1, text1, size1 = chapters[i]
+        page2, text2, size2 = chapters[i + 1]
+
+        if page1 == page2:
+            continue
+        chapters_list_page_range.append((text1, page1, page2 - 1))
+
+    return chapters_list_page_range
 
 
 def read_words_from_file(filepath):

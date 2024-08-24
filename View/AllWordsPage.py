@@ -26,7 +26,7 @@ class AllWordsPage(tk.Frame):
         self.tree.column("English", width=150)
         self.tree.column("Hebrew", width=400)
         self.tree.column("Difficulty", width=100)
-        self.tree.column("Group", width=100)
+        self.tree.column("Group", width=130)
         self.tree.grid(row=5, column=2, sticky="nsew")
 
         self.button = tk.Button(self, text="Add Word")
