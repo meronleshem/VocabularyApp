@@ -7,7 +7,11 @@ def translate_to_heb(eng_word):
     div_class = 'normal_translation_div'
     url = f"{base_url}{eng_word}"
 
-    response = requests.get(url)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Referer': 'https://www.google.com/'
+    }
+    response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
