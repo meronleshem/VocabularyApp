@@ -1,39 +1,82 @@
 import tkinter as tk
+from tkinter import ttk
 
 
-class AddWordPage(tk.Frame):
+class AddWordPage(ttk.Frame):
     def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
+        super().__init__(parent)
+        self.grid(sticky="nsew", padx=20, pady=20)
 
-        self.label = tk.Label(self, text="Add Word Page")
-        self.label.grid(row=0, column=2, padx=10, pady=10, sticky="we")
+        # ===== Layout config =====
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=2)
 
-        self.word_entry = tk.Entry(self)
-        self.word_entry.grid(row=1, column=2, padx=10, pady=10, sticky="we")
+        # ===== LEFT SIDE =====
+        left = ttk.Frame(self)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
+        left.columnconfigure(0, weight=1)
 
-        self.add_word_btn = tk.Button(self, text="Add Word")
-        self.add_word_btn.grid(row=4, column=2, padx=80, pady=10, sticky="w")
+        # --- Add word section ---
+        add_frame = ttk.LabelFrame(left, text="Add New Word")
+        add_frame.grid(row=0, column=0, sticky="ew", pady=(0, 15))
+        add_frame.columnconfigure(0, weight=1)
 
-        self.add_from_text_file_btn = tk.Button(self, text="Add Words From Text File")
-        self.add_from_text_file_btn.grid(row=5, column=2, padx=10, pady=10, sticky="we")
+        self.word_entry = ttk.Entry(add_frame, font=("Segoe UI", 11))
+        self.word_entry.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-        self.add_from_pdf_btn = tk.Button(self, text="Add Words From PDF")
-        self.add_from_pdf_btn.grid(row=6, column=2, padx=10, pady=10, sticky="we")
+        btn_row = ttk.Frame(add_frame)
+        btn_row.grid(row=1, column=0, pady=(0, 10))
 
-        self.translate_btn = tk.Button(self, text="Translate")
-        self.translate_btn.grid(row=4, column=2, padx=10, pady=2, sticky="e")
+        self.add_word_btn = ttk.Button(btn_row, text="Add Word")
+        self.add_word_btn.grid(row=0, column=0, padx=5)
 
-        self.all_words_btn = tk.Button(self, text="Show All Words")
-        self.all_words_btn.grid(row=7, column=2, padx=10, pady=10, sticky="we")
+        self.translate_btn = ttk.Button(btn_row, text="Translate")
+        self.translate_btn.grid(row=0, column=1, padx=5)
 
-        self.quiz_btn = tk.Button(self, text="Quiz")
-        self.quiz_btn.grid(row=8, column=2, padx=10, pady=10, sticky="we")
+        # --- Actions section ---
+        actions_frame = ttk.LabelFrame(left, text="Actions")
+        actions_frame.grid(row=1, column=0, sticky="ew")
+        actions_frame.columnconfigure(0, weight=1)
 
-        self.translate_frame = tk.Frame(parent, background="blue")
-        self.translate_frame.grid(row=0, column=2)
+        self.add_from_text_file_btn = ttk.Button(
+            actions_frame, text="Add Words from Text File"
+        )
+        self.add_from_text_file_btn.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
 
-        self.translate_word_label = tk.Label(self.translate_frame, text="", anchor="w", justify="left", font=("Arial", 11))
-        self.translate_word_label.grid(row=1, column=0, pady=5, sticky="we")
+        self.add_from_pdf_btn = ttk.Button(
+            actions_frame, text="Add Words from PDF"
+        )
+        self.add_from_pdf_btn.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
-        self.translate_word_examples = tk.Label(self.translate_frame, text="", anchor="w", justify="left", font=("Arial", 11))
-        self.translate_word_examples.grid(row=4, column=0, pady=5, sticky="we")
+        self.all_words_btn = ttk.Button(
+            actions_frame, text="Show All Words"
+        )
+        self.all_words_btn.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+
+        self.quiz_btn = ttk.Button(actions_frame, text="Quiz")
+        self.quiz_btn.grid(row=3, column=0, padx=10, pady=(5, 10), sticky="ew")
+
+        # ===== RIGHT SIDE =====
+        right = ttk.LabelFrame(self, text="Translation")
+        right.grid(row=0, column=1, sticky="nsew")
+        right.columnconfigure(0, weight=1)
+
+        self.translate_word_label = ttk.Label(
+            right,
+            text="",
+            font=("Segoe UI", 12, "bold"),
+            wraplength=400,
+            justify="left",
+        )
+        self.translate_word_label.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
+
+        self.translate_word_examples = ttk.Label(
+            right,
+            text="",
+            font=("Segoe UI", 11),
+            wraplength=400,
+            justify="left",
+        )
+        self.translate_word_examples.grid(
+            row=1, column=0, padx=10, pady=(0, 10), sticky="w"
+        )

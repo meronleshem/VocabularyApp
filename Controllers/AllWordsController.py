@@ -12,7 +12,7 @@ class AllWordsController:
         self.bind()
 
     def bind(self):
-        self.page.button.config(command=self.switch_page)
+        self.page.add_word_btn.config(command=self.switch_page)
         self.page.tree.bind("<Double-Button-1>", self.show_word_details)
 
     def show_words(self):
