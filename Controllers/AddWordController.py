@@ -30,7 +30,9 @@ class AddWordController:
 
     def add_word(self):
         eng_word = self.page.word_entry.get()
-        self.model.add_word(eng_word)
+        group_name = simpledialog.askstring("Input", "Enter the group name:")
+       # group_name = f"The Will of The Many 2"
+        self.model.add_word(eng_word, group_name)
 
     def add_from_text_file(self):
         filepath = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
