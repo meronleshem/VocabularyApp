@@ -3,7 +3,7 @@ from Database.DatabaseManager import DatabaseManager
 from Utils.Translator import translate_to_heb, get_word_examples
 from tkinter import filedialog
 from tkinter import simpledialog
-
+from Utils.SoundUtil import play_sound
 
 class AddWordController:
     def __init__(self, model: DatabaseManager, view: ViewManager):
@@ -16,6 +16,7 @@ class AddWordController:
         self.page.add_word_btn.config(command=self.add_word)
         self.page.all_words_btn.config(command=self.switch_page)
         self.page.translate_btn.config(command=self.translate)
+        self.page.sound_btn.config(command=self.speak)
         self.page.add_from_text_file_btn.config(command=self.add_from_text_file)
         self.page.add_from_pdf_btn.config(command=self.add_from_pdf)
         self.page.quiz_btn.config(command=self.switch_to_quiz)
@@ -56,3 +57,7 @@ class AddWordController:
         sorted_list = sorted(words_list, key=lambda x: x[0])
         self.view.pages["all_words_page"].show_words(sorted_list)
         self.view.show_page(self.view.pages["all_words_page"])
+
+    def speak(self):
+        play_sound(self.page.word_entry.get())
+

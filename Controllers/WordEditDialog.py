@@ -6,7 +6,7 @@ This module provides a dialog window for editing word difficulty and group.
 import tkinter as tk
 from tkinter import ttk
 from typing import Optional, Tuple, List
-
+from Utils.SoundUtil import play_sound
 
 class WordEditDialog(tk.Toplevel):
     """
@@ -253,11 +253,20 @@ class WordEditDialog(tk.Toplevel):
             width=12
         )
         save_btn.pack(side="right")
+
+        sound_btn = ttk.Button(
+            button_frame,
+            text="Play Sound",
+            command=self._sound,
+            width=12
+        )
+        sound_btn.pack(side="right")
         
         # Bind Enter key to save
         self.bind("<Return>", lambda e: self._on_save())
         self.bind("<Escape>", lambda e: self._on_cancel())
-    
+        #self.bind(lambda e: self._sound())
+
     def _center_dialog(self) -> None:
         """Center the dialog on parent window."""
         self.update_idletasks()
@@ -303,6 +312,10 @@ class WordEditDialog(tk.Toplevel):
         """Handle cancel button click."""
         self.result = None
         self.destroy()
+
+    def _sound(self) -> None:
+        play_sound(self.english)
+        #self.destroy()
 
 
 # ==================== Alternative: Simple Menu Dialog ====================

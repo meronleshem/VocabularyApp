@@ -89,6 +89,10 @@ class AddWordPage(tk.Frame):
                                        bootstyle="info-outline", width=15)
         self.translate_btn.pack(side="left")
 
+        self.sound_btn = tb.Button(btn_row, text="sound",
+                                       bootstyle="info-outline", width=15)
+        self.sound_btn.pack(side="left")
+
     def _create_actions_card(self, parent):
         """Create modern actions card."""
         # Card frame
