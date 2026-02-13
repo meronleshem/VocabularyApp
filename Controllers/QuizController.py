@@ -1,72 +1,91 @@
 """
-Quiz Controller - Business logic for Quiz page
+Quiz Controller - Auto-shows setup dialog
 
-Improved version with:
-- Session statistics tracking
-- Better answer validation
-- Smooth quiz flow
-- Enhanced error handling
+No need to modify AddWordController!
+Dialog appears automatically when navigating to quiz page.
 """
 import random
 from typing import Dict, Tuple, List, Optional
+from tkinter import messagebox
 from View.View import ViewManager
 from Database.DatabaseManager import DatabaseManager
 from Utils.DiffucltyEnum import Difficulty
 from View.QuizPage import DifficultyDialog, GroupSelectionDialog
+from View.QuizSetupDialog import QuizSetupDialog
 
 
 class QuizController:
     """
-    Controller for the Quiz page.
-
-    Manages:
-    - Quiz state and flow
-    - Answer checking
-    - Statistics tracking
-    - Difficulty filtering
-    - Group filtering
+    Controller for Quiz page.
+    Automatically shows setup dialog on first visit.
     """
 
     def __init__(self, model: DatabaseManager, view: ViewManager):
-        """
-        Initialize the quiz controller.
-
-        Args:
-            model: Database manager
-            view: View manager
-        """
         self.model = model
         self.view = view
         self.page = self.view.pages["quiz_page"]
 
-        # Word dictionaries
-        self.words_dict: Dict[str, Tuple[str, str]] = {}  # {eng: (heb, difficulty)}
+        # Word storage
+        self.words_dict: Dict[str, Tuple[str, str]] = {}
         self.all_words_dict: Dict[str, Tuple[str, str]] = {}
 
-        # Current quiz state
+        # Quiz state
         self.curr_ans: str = ""
         self.curr_eng_word: str = ""
-        self.current_index: int = 0
-        self.total_questions: int = 0
         self.filtered_words: List[str] = []
         self.word_index: int = 0
-
-        # Quiz control
+        self.total_questions: int = 0
         self.new_quiz: bool = True
-        self.difficulties: List[str] = []
         self.answer_selected: bool = False
+        self.difficulties: List[str] = []
+        self.quiz_configured: bool = False  # Track if quiz has been configured
 
         # Statistics
         self.correct_count: int = 0
         self.wrong_count: int = 0
 
+        # Quiz configuration
+        self.max_questions: Optional[int] = None
+
         # Initialize
         self.init_words_dict()
         self.bind()
 
+        # Show welcome message
+        self._show_welcome_message()
+
+        # HOOK: Show dialog when page becomes visible
+        self.page.bind("<Visibility>", self._on_page_visible)
+
+    def _on_page_visible(self, event):
+        """
+        Called when quiz page becomes visible.
+        Shows setup dialog on first visit.
+        """
+        # Only show dialog once per session
+        if not self.quiz_configured:
+            # Delay slightly to ensure page is fully shown
+            self.page.after(100, self._show_initial_setup)
+
+    def _show_initial_setup(self):
+        """Show setup dialog for first-time configuration."""
+        if not self.quiz_configured:
+            self.show_setup_dialog()
+
+    def _show_welcome_message(self):
+        """Show welcome message before quiz starts."""
+        self.page.eng_word_label.config(text="Welcome to Quiz!")
+        self.page.res_label.config(
+            text="Configuring your quiz...",
+            fg="#666"
+        )
+        self.page.next_btn.config(state="disabled")
+
+        for btn in self.page.option_buttons:
+            btn.config(text="", state="disabled")
+
     def bind(self):
-        """Bind UI events to controller methods."""
-        # Navigation
+        """Bind UI events."""
         self.page.back_btn.config(command=self.go_back)
         self.page.next_btn.config(command=self.next_question)
 
@@ -74,66 +93,123 @@ class QuizController:
         for i, btn in enumerate(self.page.option_buttons):
             btn.config(command=lambda idx=i, b=btn: self.check_answer(idx, b))
 
-        # Action buttons
+        # Control buttons
         self.page.update_btn.config(command=self.update_difficulty)
         self.page.select_groups_btn.config(command=self.select_groups)
 
-        # New quiz button
+        # New Quiz button - show setup dialog
         if hasattr(self.page, 'new_quiz_btn'):
-            self.page.new_quiz_btn.config(command=self.start_new_quiz)
+            self.page.new_quiz_btn.config(command=self.start_new_quiz_with_dialog)
 
-        # Difficulty checkboxes - trigger quiz restart
+        # Filter changes
         self.page.choice_new.trace('w', lambda *args: self._on_filter_change())
         self.page.choice_easy.trace('w', lambda *args: self._on_filter_change())
         self.page.choice_medium.trace('w', lambda *args: self._on_filter_change())
         self.page.choice_hard.trace('w', lambda *args: self._on_filter_change())
 
-    # ==================== Navigation ====================
+    def _on_filter_change(self):
+        """Handle filter changes."""
+        if self.quiz_configured:
+            self.new_quiz = True
 
-    def go_back(self):
-        """Navigate back to home page."""
-        self.view.show_page(self.view.pages["add_word_page"])
-
-    # ==================== Quiz Initialization ====================
+    # ==================== Initialization ====================
 
     def init_words_dict(self):
-        """Load all words from database into dictionaries."""
+        """Load words from database."""
         try:
             words_list = self.model.get_full_data()
-
             for eng_word, heb_word, difficulty, group_name in words_list:
                 self.words_dict[eng_word] = (heb_word, difficulty)
                 self.all_words_dict[eng_word] = (heb_word, difficulty)
-
         except Exception as e:
             print(f"Error loading words: {e}")
 
-    def start_new_quiz(self):
-        """Start a completely new quiz session."""
+    def show_setup_dialog(self):
+        """Show quiz setup dialog."""
+        try:
+            # Get available groups
+            groups_data = self.model.get_all_groups_names()
+            groups = [row[0] for row in groups_data] if groups_data else []
+
+            # Show setup dialog
+            dialog = QuizSetupDialog(self.view, groups)
+
+            if dialog.result:
+                # Mark as configured
+                self.quiz_configured = True
+
+                # Apply configuration
+                config = dialog.result
+
+                # Set difficulties
+                self._apply_difficulty_filters(config['difficulties'])
+
+                # Set groups filter if selected
+                if config['groups']:
+                    self._filter_by_groups(config['groups'])
+
+                # Set question limit
+                self.max_questions = config['question_count']
+
+                # Start quiz
+                self.start_quiz()
+
+                return True
+            else:
+                # User cancelled - go back to home
+                self.go_back()
+                return False
+
+        except Exception as e:
+            print(f"Error in setup dialog: {e}")
+            messagebox.showerror("Error", f"Failed to start quiz: {e}")
+            self.go_back()
+            return False
+
+    def _apply_difficulty_filters(self, difficulties: List[str]):
+        """Apply difficulty filters from setup dialog."""
+        self.page.choice_new.set(1 if "NEW_WORD" in difficulties else 0)
+        self.page.choice_easy.set(1 if "EASY" in difficulties else 0)
+        self.page.choice_medium.set(1 if "MEDIUM" in difficulties else 0)
+        self.page.choice_hard.set(1 if "HARD" in difficulties else 0)
+
+    def start_quiz(self):
+        """Start quiz with current settings."""
         self.new_quiz = True
         self.correct_count = 0
         self.wrong_count = 0
         self.page.update_stats(0, 0)
         self.new_word_quiz()
 
-    def _on_filter_change(self):
-        """Handle difficulty filter changes."""
-        self.new_quiz = True
+    def start_new_quiz_with_dialog(self):
+        """
+        Start a new quiz by showing the setup dialog.
+        This is called when the 'New Quiz' button is clicked.
+        """
+        # Reset configuration flag so dialog shows again
+        self.quiz_configured = False
+
+        # Show setup dialog
+        self.show_setup_dialog()
+
+    # ==================== Navigation ====================
+
+    def go_back(self):
+        """Go back to home page."""
+        self.quiz_configured = False  # Reset for next time
+        self.view.show_page(self.view.pages["add_word_page"])
 
     # ==================== Quiz Flow ====================
 
     def new_word_quiz(self):
-        """
-        Load and display a new quiz question.
-        Handles quiz initialization and word selection.
-        """
-        # Initialize new quiz if needed
+        """Load and display new question."""
+        # Initialize if needed
         if self.new_quiz or self.word_index >= self.total_questions:
             self._initialize_quiz()
 
-        # Check if there are words to quiz
-        if len(self.filtered_words) == 0:
-            self._show_no_words_message()
+        # Check if words available
+        if not self.filtered_words:
+            self._show_no_words()
             return
 
         # Reset state
@@ -141,116 +217,86 @@ class QuizController:
         self.page.reset_button_colors()
         self.answer_selected = False
 
-        # Get current word
+        # Get word
         self.curr_eng_word = self.filtered_words[self.word_index]
         self.curr_ans = self.words_dict[self.curr_eng_word][0]
-        difficulty_word = self.words_dict[self.curr_eng_word][1]
+        difficulty = self.words_dict[self.curr_eng_word][1]
 
         # Update UI
-        self.page.update_difficulty_badge(difficulty_word)
-
-        # Generate answer options
-        options = self._generate_answer_options()
-
-        # Update progress
+        self.page.update_difficulty_badge(difficulty)
+        options = self._generate_options()
         self.word_index += 1
         self.page.update_progress(self.word_index, self.total_questions)
-
-        # Display question
         self.page.show_options(self.curr_eng_word, self.curr_ans, options)
+        self.page.next_btn.config(state="enabled")
 
     def next_question(self):
         """Move to next question."""
         if not self.answer_selected:
-            # If no answer selected, treat as wrong
             self.wrong_count += 1
             self.page.update_stats(self.correct_count, self.wrong_count)
 
         self.new_word_quiz()
 
     def _initialize_quiz(self):
-        """Initialize a new quiz session with filtered words."""
-        # Filter difficulties
+        """Initialize quiz with filtered words."""
         self.filter_difficulties()
-
-        # Clear result
         self.page.res_label.config(text="")
 
-        # Filter words by difficulty
+        # Filter words
         self.filtered_words = [
             word for word in self.words_dict.keys()
             if self.words_dict[word][1] in self.difficulties
         ]
 
-        # Shuffle words
-        random.shuffle(self.filtered_words)
+        # Apply question limit if set
+        if self.max_questions and len(self.filtered_words) > self.max_questions:
+            random.shuffle(self.filtered_words)
+            self.filtered_words = self.filtered_words[:self.max_questions]
+        else:
+            random.shuffle(self.filtered_words)
 
-        # Reset state
         self.new_quiz = False
         self.word_index = 0
         self.total_questions = len(self.filtered_words)
 
-    def _generate_answer_options(self) -> List[str]:
-        """
-        Generate 4 answer options including the correct answer.
-
-        Returns:
-            List of 4 Hebrew words (options)
-        """
-        # Get three random wrong answers
-        max_attempts = 10
+    def _generate_options(self) -> List[str]:
+        """Generate 4 answer options."""
         attempts = 0
+        while attempts < 10:
+            others = random.sample(list(self.all_words_dict.values()), 3)
+            options = [v[0] for v in others]
+            options.append(self.curr_ans)
 
-        while attempts < max_attempts:
-            other_options = random.sample(list(self.all_words_dict.values()), 3)
-            other_options_words = [value[0] for value in other_options]
-            other_options_words.append(self.curr_ans)
-
-            # Ensure all options are unique
-            if len(set(other_options_words)) == 4:
-                break
-
+            if len(set(options)) == 4:
+                random.shuffle(options)
+                return options
             attempts += 1
 
-        # Shuffle so correct answer isn't always in same position
-        random.shuffle(other_options_words)
+        options = [self.curr_ans, "---", "---", "---"]
+        random.shuffle(options)
+        return options
 
-        return other_options_words
-
-    def _show_no_words_message(self):
-        """Show message when no words match filters."""
+    def _show_no_words(self):
+        """Show no words message."""
         self.page.eng_word_label.config(text="No words available")
-        self.page.res_label.config(
-            text="Adjust your filters or add more words",
-            fg="#6c757d"
-        )
-
+        self.page.res_label.config(text="Check your filters or add more words", fg="#666")
         for btn in self.page.option_buttons:
             btn.config(text="", state="disabled")
+        self.page.next_btn.config(state="disabled")
 
     # ==================== Answer Checking ====================
 
     def check_answer(self, button_index: int, button):
-        """
-        Check if selected answer is correct.
-
-        Args:
-            button_index: Index of clicked button
-            button: The button widget that was clicked
-        """
-        # Prevent multiple answers
+        """Check if answer is correct."""
         if self.answer_selected:
             return
 
         self.answer_selected = True
+        selected = button.cget("text")
+        is_correct = (selected == self.curr_ans)
 
-        # Get selected answer
-        selected_ans = button.cget("text")
-
-        # Check if correct
-        is_correct = (selected_ans == self.curr_ans)
-
-        # Update statistics
+        # Update stats
         if is_correct:
             self.correct_count += 1
         else:
@@ -259,48 +305,26 @@ class QuizController:
         self.page.update_stats(self.correct_count, self.wrong_count)
 
         # Visual feedback
-        self._show_answer_feedback(button_index, is_correct)
+        self.page.highlight_answer(button_index, is_correct)
 
-        # Show result message
-        self.page.show_result(is_correct, self.curr_ans if not is_correct else None)
-
-    def _show_answer_feedback(self, selected_index: int, is_correct: bool):
-        """
-        Show visual feedback for answer selection.
-
-        Args:
-            selected_index: Index of selected button
-            is_correct: Whether answer was correct
-        """
-        # Highlight selected button
-        self.page.highlight_answer(selected_index, is_correct)
-
-        # If wrong, also highlight correct answer
+        # Highlight correct answer if wrong
         if not is_correct:
-            correct_index = self._find_correct_answer_index()
-            if correct_index is not None:
-                self.page.highlight_answer(correct_index, True)
+            for i, btn in enumerate(self.page.option_buttons):
+                if btn.cget("text") == self.curr_ans:
+                    self.page.highlight_answer(i, True)
+                    break
 
-        # Disable all buttons after answer
+        # Disable buttons
         for btn in self.page.option_buttons:
             btn.config(state="disabled")
 
-    def _find_correct_answer_index(self) -> Optional[int]:
-        """
-        Find the index of the button with the correct answer.
+        # Show result
+        self.page.show_result(is_correct, self.curr_ans if not is_correct else None)
 
-        Returns:
-            Index of correct answer button, or None if not found
-        """
-        for i, btn in enumerate(self.page.option_buttons):
-            if btn.cget("text") == self.curr_ans:
-                return i
-        return None
-
-    # ==================== Difficulty Management ====================
+    # ==================== Difficulty ====================
 
     def filter_difficulties(self):
-        """Filter quiz words based on selected difficulty checkboxes."""
+        """Apply difficulty filters."""
         self.difficulties.clear()
 
         if self.page.choice_new.get() == 1:
@@ -313,163 +337,74 @@ class QuizController:
             self.difficulties.append(Difficulty.HARD.name)
 
     def update_difficulty(self):
-        """Open dialog to update current word's difficulty."""
+        """Update current word difficulty."""
         if not self.curr_eng_word:
             return
 
-        # Show difficulty dialog
         dialog = DifficultyDialog(self.page)
-        new_difficulty = dialog.result
-
-        if not new_difficulty:
+        if not dialog.result:
             return
 
-        # Convert to enum
-        difficulty_enum = self._convert_difficulty_to_enum(new_difficulty)
-
-        if difficulty_enum:
-            try:
-                # Update in database
-                self.model.update_difficulty(self.curr_eng_word, difficulty_enum)
-
-                # Update local dict
-                heb_word = self.words_dict[self.curr_eng_word][0]
-                self.words_dict[self.curr_eng_word] = (heb_word, difficulty_enum)
-                self.all_words_dict[self.curr_eng_word] = (heb_word, difficulty_enum)
-
-                # Show success message
-                self.page.res_label.config(
-                    text=f"Difficulty updated to {new_difficulty}!",
-                    fg="#28a745"
-                )
-
-            except Exception as e:
-                print(f"Error updating difficulty: {e}")
-                self.page.res_label.config(
-                    text="Failed to update difficulty",
-                    fg="#dc3545"
-                )
-
-    def _convert_difficulty_to_enum(self, difficulty_str: str) -> Optional[str]:
-        """
-        Convert difficulty string to enum name.
-
-        Args:
-            difficulty_str: Difficulty as string ("Easy", "Medium", "Hard")
-
-        Returns:
-            Enum name or None
-        """
         difficulty_map = {
             "Easy": Difficulty.EASY.name,
             "Medium": Difficulty.MEDIUM.name,
             "Hard": Difficulty.HARD.name
         }
 
-        return difficulty_map.get(difficulty_str)
+        new_diff = difficulty_map.get(dialog.result)
+        if new_diff:
+            try:
+                self.model.update_difficulty(self.curr_eng_word, new_diff)
+                heb = self.words_dict[self.curr_eng_word][0]
+                self.words_dict[self.curr_eng_word] = (heb, new_diff)
+                self.all_words_dict[self.curr_eng_word] = (heb, new_diff)
+                self.page.res_label.config(text=f"Updated to {dialog.result}!", fg="#28a745")
+            except Exception as e:
+                print(f"Error: {e}")
+                self.page.res_label.config(text="Update failed", fg="#dc3545")
 
     # ==================== Group Filtering ====================
 
     def select_groups(self):
-        """Open dialog to select groups for quiz filtering."""
+        """Select groups for filtering."""
         try:
-            # Get all groups
-            all_groups_names = self.model.get_all_groups_names()
-            groups = [row[0] for row in all_groups_names]
+            groups_data = self.model.get_all_groups_names()
+            groups = [row[0] for row in groups_data]
 
             if not groups:
-                self.page.res_label.config(
-                    text="No groups available",
-                    fg="#6c757d"
-                )
+                self.page.res_label.config(text="No groups available", fg="#666")
                 return
 
-            # Open group selection dialog
             dialog = GroupSelectionDialog(self.page, groups)
+            selected = getattr(dialog, 'selected_groups', [])
 
-            # Get selected groups
-            selected_groups = getattr(dialog, 'selected_groups', [])
-
-            if selected_groups:
-                # Get words from selected groups
-                self._filter_by_groups(selected_groups)
+            if selected:
+                self._filter_by_groups(selected)
+                # Restart quiz with new groups
+                if self.quiz_configured:
+                    self.start_quiz()
 
         except Exception as e:
-            print(f"Error selecting groups: {e}")
-            self.page.res_label.config(
-                text="Failed to load groups",
-                fg="#dc3545"
-            )
+            print(f"Error: {e}")
+            self.page.res_label.config(text="Failed to filter groups", fg="#dc3545")
 
     def _filter_by_groups(self, selected_groups: List[str]):
-        """
-        Filter quiz words by selected groups.
-
-        Args:
-            selected_groups: List of group names to include
-        """
+        """Filter words by groups."""
         try:
-            # Query words from selected groups
-            words_by_groups = self.model.get_words_by_groups(selected_groups)
-
-            # Update words dict
+            words_data = self.model.get_words_by_groups(selected_groups)
             self.words_dict = {}
-            for eng_word, heb_word, difficulty, group_name in words_by_groups:
-                self.words_dict[eng_word] = (heb_word, difficulty)
 
-            # Mark for new quiz
+            for eng, heb, diff, grp in words_data:
+                self.words_dict[eng] = (heb, diff)
+
             self.new_quiz = True
 
-            # Show confirmation
             group_names = ", ".join(selected_groups[:3])
             if len(selected_groups) > 3:
                 group_names += f" +{len(selected_groups) - 3} more"
 
-            self.page.res_label.config(
-                text=f"Quiz filtered to: {group_names}",
-                fg="#28a745"
-            )
+            self.page.res_label.config(text=f"Filtered to: {group_names}", fg="#28a745")
 
         except Exception as e:
-            print(f"Error filtering by groups: {e}")
-            self.page.res_label.config(
-                text="Failed to filter groups",
-                fg="#dc3545"
-            )
-
-    # ==================== Statistics ====================
-
-    def get_session_stats(self) -> Dict[str, int]:
-        """
-        Get current session statistics.
-
-        Returns:
-            Dictionary with session stats
-        """
-        total = self.correct_count + self.wrong_count
-        accuracy = (self.correct_count / total * 100) if total > 0 else 0
-
-        return {
-            "correct": self.correct_count,
-            "wrong": self.wrong_count,
-            "total": total,
-            "accuracy": round(accuracy, 1)
-        }
-
-    def reset_stats(self):
-        """Reset session statistics."""
-        self.correct_count = 0
-        self.wrong_count = 0
-        self.page.update_stats(0, 0)
-
-    # ==================== Public API ====================
-
-    def initialize(self):
-        """Initialize the quiz controller."""
-        self.init_words_dict()
-        self.start_new_quiz()
-
-    def cleanup(self):
-        """Cleanup when controller is destroyed."""
-        # Add any cleanup logic here
-        pass
+            print(f"Error: {e}")
+            self.page.res_label.config(text="Failed to filter groups", fg="#dc3545")
