@@ -55,103 +55,169 @@ import ttkbootstrap as tb
 from tkinter import simpledialog
 
 
-class QuizPage(ttk.Frame):
+class GroupSelectionDialog(simpledialog.Dialog):
+    def __init__(self, parent, groups):
+        self.groups = groups
+        self.group_vars = {}
+        super().__init__(parent, title="Select Groups")
+
+    def body(self, master):
+        for group in self.groups:
+            var = tk.BooleanVar()
+            checkbox = tk.Checkbutton(master, text=group, variable=var)
+            checkbox.pack(anchor="w")
+            self.group_vars[group] = var
+
+    def apply(self):
+        self.selected_groups = [
+            group for group, var in self.group_vars.items() if var.get()
+        ]
+
+
+class DifficultyDialog(simpledialog.Dialog):
+    def body(self, master):
+        tk.Label(master, text="Choose difficulty:", font=("Arial", 12)).pack(pady=10)
+
+        self.result = None
+
+        button_frame = tk.Frame(master)
+        button_frame.pack(pady=10)
+
+        tb.Button(
+            button_frame,
+            bootstyle="success-outline",
+            text="Easy",
+            width=10,
+            command=lambda: self.set_result("Easy"),
+        ).pack(side=tk.LEFT, padx=5)
+
+        tb.Button(
+            button_frame,
+            bootstyle="warning-outline",
+            text="Medium",
+            width=10,
+            command=lambda: self.set_result("Medium"),
+        ).pack(side=tk.LEFT, padx=5)
+
+        tb.Button(
+            button_frame,
+            bootstyle="danger-outline",
+            text="Hard",
+            width=10,
+            command=lambda: self.set_result("Hard"),
+        ).pack(side=tk.LEFT, padx=5)
+
+    def set_result(self, value):
+        self.result = value
+        self.ok()
+
+    def buttonbox(self):
+        pass
+
+
+class QuizPage(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.columnconfigure(0, weight=3)
-        self.columnconfigure(1, weight=1)
-        self.rowconfigure(0, weight=1)
+        # Layout config
+        self.grid_columnconfigure(2, weight=1)
 
-        # ================= LEFT: QUIZ =================
-        quiz_frame = ttk.Frame(self)
-        quiz_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
-        quiz_frame.columnconfigure(0, weight=1)
-
-        title = ttk.Label(
-            quiz_frame,
-            text="Quiz",
-            font=("Segoe UI", 18, "bold")
+        # ===== HEADER BAR =====
+        header = tk.Frame(self, bg="#f8f9fa")
+        header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        header.grid_columnconfigure(1, weight=1)
+        self.back_btn = tb.Button(
+            header,
+            text="←",
+            width=3,
+            bootstyle="primary",
         )
-        title.grid(row=0, column=0, sticky="w", pady=(0, 15))
-
-        self.eng_word_label = ttk.Label(
-            quiz_frame,
+        self.back_btn.grid(row=0, column=0, sticky="w")
+        # Word label
+        self.eng_word_label = tb.Label(
+            self,
             text="",
-            font=("Segoe UI", 16, "bold")
+            font=("Arial", 18, "bold"),
+            wraplength=700,
+            justify="center",
         )
-        self.eng_word_label.grid(row=1, column=0, sticky="w", pady=(0, 15))
+        self.eng_word_label.grid(row=0, column=2, padx=20, pady=(20, 10), sticky="ew")
 
-        # Options
+        # Answer buttons (fixed layout)
+        self.option_frames = []
         self.option_buttons = []
+
         for i in range(4):
+            frame = tk.Frame(self, height=90)
+            frame.grid(row=1 + i, column=2, padx=20, pady=6, sticky="ew")
+            frame.grid_propagate(False)
+
             btn = tk.Button(
-                quiz_frame,
+                frame,
                 text="",
-                wraplength=600,
+                font=("Arial", 12),
+                wraplength=650,
                 justify="left",
                 anchor="w",
-                padx=10,
-                pady=6
+                padx=12,
+                pady=8,
+                relief="raised",
             )
-            btn.grid(row=2 + i, column=0, sticky="ew", pady=6)
+            btn.pack(fill="both", expand=True)
+
+            self.option_frames.append(frame)
             self.option_buttons.append(btn)
 
-        self.option1_btn, self.option2_btn, self.option3_btn, self.option4_btn = self.option_buttons
-
-        # Result
-        self.res_label = ttk.Label(
-            quiz_frame,
-            text="",
-            font=("Segoe UI", 12)
-        )
-        self.res_label.grid(row=6, column=0, sticky="w", pady=(15, 10))
-
+        # Next button
         self.next_btn = tb.Button(
-            quiz_frame,
-            text="Next",
-            bootstyle="primary"
+            self, text="Next", bootstyle="primary", width=12
         )
-        self.next_btn.grid(row=7, column=0, sticky="w")
+        self.next_btn.grid(row=6, column=2, padx=20, pady=(10, 5), sticky="w")
 
-        # ================= RIGHT: SETTINGS =================
-        settings = ttk.LabelFrame(self, text="Filters")
-        settings.grid(row=0, column=1, sticky="nsew")
-        settings.columnconfigure(0, weight=1)
+        # Result label
+        self.res_label = tb.Label(self, text="", font=("Arial", 14))
+        self.res_label.grid(row=7, column=2, padx=20, pady=5, sticky="w")
 
+        # Difficulty filters
         self.choice_new = tk.IntVar(value=1)
         self.choice_easy = tk.IntVar(value=1)
         self.choice_medium = tk.IntVar(value=1)
         self.choice_hard = tk.IntVar(value=1)
 
-        ttk.Checkbutton(settings, text="New", variable=self.choice_new).grid(sticky="w", pady=4)
-        ttk.Checkbutton(settings, text="Easy", variable=self.choice_easy).grid(sticky="w", pady=4)
-        ttk.Checkbutton(settings, text="Medium", variable=self.choice_medium).grid(sticky="w", pady=4)
-        ttk.Checkbutton(settings, text="Hard", variable=self.choice_hard).grid(sticky="w", pady=4)
+        filters_frame = tk.Frame(self)
+        filters_frame.grid(row=8, column=2, padx=20, pady=10, sticky="w")
 
-        self.update_btn = tb.Button(
-            settings,
-            text="Update Difficulty",
-            bootstyle="warning-outline"
+        ttk.Checkbutton(filters_frame, text="New", variable=self.choice_new).pack(side=tk.LEFT, padx=5)
+        ttk.Checkbutton(filters_frame, text="Easy", variable=self.choice_easy).pack(side=tk.LEFT, padx=5)
+        ttk.Checkbutton(filters_frame, text="Medium", variable=self.choice_medium).pack(side=tk.LEFT, padx=5)
+        ttk.Checkbutton(filters_frame, text="Hard", variable=self.choice_hard).pack(side=tk.LEFT, padx=5)
+
+        # Action buttons
+        actions_frame = tk.Frame(self)
+        actions_frame.grid(row=9, column=2, padx=20, pady=(5, 20), sticky="w")
+
+        self.update_btn = tb.Button(actions_frame, text="Update Difficulty")
+        self.update_btn.pack(side=tk.LEFT, padx=5)
+        self.select_groups_btn = tb.Button(actions_frame, text="Select Groups")
+        self.select_groups_btn.pack(side=tk.LEFT, padx=5)
+
+        self.progress_label = tb.Label(
+            actions_frame,
+            text="0 of 0",
+            font=("Segoe UI", 10),
+            bootstyle="secondary",
         )
-        self.update_btn.grid(sticky="ew", pady=(10, 5))
+        self.progress_label.pack(pady=(4, 0))
 
-        self.select_groups_btn = tb.Button(
-            settings,
-            text="Select Groups",
-            bootstyle="secondary-outline"
-        )
-        self.select_groups_btn.grid(sticky="ew")
-
-    # ===== API used by controller =====
     def show_options(self, eng_word, heb_ans, options_list):
         self.eng_word_label.config(text=eng_word)
 
-        self.option1_btn.config(text=options_list[0])
-        self.option2_btn.config(text=options_list[1])
-        self.option3_btn.config(text=options_list[2])
-        self.option4_btn.config(text=options_list[3])
+        for btn, text in zip(self.option_buttons, options_list):
+            btn.config(text=text)
 
-    def change_color(self):
-        pass
+    def reset_button_colors(self):
+        for btn in self.option_buttons:
+            btn.config(bg="SystemButtonFace", fg="black")
 
+    def update_progress(self, current, total):
+        self.progress_label.config(text=f"{current} of {total}")
