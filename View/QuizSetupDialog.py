@@ -1,332 +1,11 @@
-# """
-# Quiz Setup Dialog - Configure quiz before starting
-#
-# Allows user to select:
-# - Difficulty levels
-# - Groups
-# - Number of questions (optional)
-# """
-# import tkinter as tk
-# from tkinter import ttk, simpledialog
-# import ttkbootstrap as tb
-# from typing import List, Dict, Optional
-#
-#
-# class QuizSetupDialog(tk.Toplevel):
-#     """
-#     Modern quiz setup dialog.
-#
-#     Allows users to configure quiz settings before starting:
-#     - Select difficulty levels
-#     - Choose groups
-#     - Set number of questions
-#     """
-#
-#     def __init__(self, parent, available_groups: List[str]):
-#         super().__init__(parent)
-#
-#         self.available_groups = available_groups
-#         self.result: Optional[Dict] = None
-#
-#         # Configuration
-#         self.title("Quiz Setup")
-#         self.geometry("600x850")
-#         # self.resizable(Tr, False)
-#
-#         # Make modal
-#         self.transient(parent)
-#         self.grab_set()
-#
-#         # Configure background
-#         self.configure(bg="#e8eaf6")
-#
-#         # Create UI
-#         self._create_header()
-#         self._create_content()
-#         self._create_buttons()
-#
-#         # Center dialog
-#         self._center_dialog()
-#
-#         # Wait for user
-#         self.wait_window()
-#
-#     def _create_header(self):
-#         """Create dialog header."""
-#         header = tk.Frame(self, bg="#3f51b5", height=70)
-#         header.pack(fill="x")
-#         header.pack_propagate(False)
-#
-#         tk.Label(header, text="🎯 Quiz Setup",
-#                 font=("Segoe UI", 18, "bold"),
-#                 bg="#3f51b5", fg="#ffffff").pack(side="left", padx=25, pady=20)
-#
-#         tk.Label(header, text="Configure your quiz",
-#                 font=("Segoe UI", 10),
-#                 bg="#3f51b5", fg="#e8eaf6").pack(side="left", padx=(0, 25))
-#
-#     def _create_content(self):
-#         """Create dialog content."""
-#         # Main content area
-#         content = tk.Frame(self, bg="#e8eaf6")
-#         content.pack(fill="both", expand=True, padx=25, pady=25)
-#
-#         # Difficulty section
-#         self._create_difficulty_section(content)
-#
-#         # Groups section
-#         self._create_groups_section(content)
-#
-#         # Question count section (optional)
-#         self._create_question_count_section(content)
-#
-#     def _create_difficulty_section(self, parent):
-#         """Create difficulty selection section."""
-#         # Card
-#         card = tk.Frame(parent, bg="#ffffff", relief="flat",
-#                        highlightbackground="#c5cae9", highlightthickness=1)
-#         card.pack(fill="x", pady=(0, 15))
-#
-#         # Header
-#         header = tk.Frame(card, bg="#ffffff")
-#         header.pack(fill="x", padx=20, pady=(15, 10))
-#
-#         tk.Label(header, text="📊 Difficulty Levels",
-#                 font=("Segoe UI", 12, "bold"),
-#                 bg="#ffffff", fg="#283593").pack(anchor="w")
-#
-#         tk.Label(header, text="Select which difficulty levels to include",
-#                 font=("Segoe UI", 9),
-#                 bg="#ffffff", fg="#666").pack(anchor="w", pady=(3, 0))
-#
-#         # Checkboxes
-#         checks = tk.Frame(card, bg="#ffffff")
-#         checks.pack(fill="x", padx=20, pady=(0, 15))
-#
-#         self.diff_new = tk.IntVar(value=1)
-#         self.diff_easy = tk.IntVar(value=1)
-#         self.diff_medium = tk.IntVar(value=1)
-#         self.diff_hard = tk.IntVar(value=1)
-#
-#         ttk.Checkbutton(checks, text="New Words",
-#                        variable=self.diff_new).pack(anchor="w", pady=3)
-#         ttk.Checkbutton(checks, text="Easy",
-#                        variable=self.diff_easy).pack(anchor="w", pady=3)
-#         ttk.Checkbutton(checks, text="Medium",
-#                        variable=self.diff_medium).pack(anchor="w", pady=3)
-#         ttk.Checkbutton(checks, text="Hard",
-#                        variable=self.diff_hard).pack(anchor="w", pady=3)
-#
-#     def _create_groups_section(self, parent):
-#         """Create groups selection section."""
-#         # Card
-#         card = tk.Frame(parent, bg="#ffffff", relief="flat",
-#                        highlightbackground="#c5cae9", highlightthickness=1)
-#         card.pack(fill="x", pady=(0, 15))
-#
-#         # Header
-#         header = tk.Frame(card, bg="#ffffff")
-#         header.pack(fill="x", padx=20, pady=(15, 10))
-#
-#         tk.Label(header, text="📚 Word Groups",
-#                 font=("Segoe UI", 12, "bold"),
-#                 bg="#ffffff", fg="#283593").pack(anchor="w")
-#
-#         tk.Label(header, text="Choose which groups to include in quiz",
-#                 font=("Segoe UI", 9),
-#                 bg="#ffffff", fg="#666").pack(anchor="w", pady=(3, 0))
-#
-#         # Groups container with scroll
-#         groups_container = tk.Frame(card, bg="#ffffff")
-#         groups_container.pack(fill="both", expand=True, padx=20, pady=(0, 15))
-#
-#         # Canvas for scrolling
-#         canvas = tk.Canvas(groups_container, height=150, bg="#ffffff",
-#                           highlightthickness=0)
-#         scrollbar = ttk.Scrollbar(groups_container, orient="vertical",
-#                                  command=canvas.yview)
-#         scrollable = tk.Frame(canvas, bg="#ffffff")
-#
-#         scrollable.bind(
-#             "<Configure>",
-#             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-#         )
-#
-#         canvas.create_window((0, 0), window=scrollable, anchor="nw")
-#         canvas.configure(yscrollcommand=scrollbar.set)
-#
-#         # Group checkboxes
-#         self.group_vars = {}
-#
-#         if self.available_groups:
-#             for group in sorted(self.available_groups):
-#                 var = tk.IntVar(value=1)  # All selected by default
-#                 ttk.Checkbutton(scrollable, text=group,
-#                                variable=var).pack(anchor="w", pady=2)
-#                 self.group_vars[group] = var
-#         else:
-#             tk.Label(scrollable, text="No groups available",
-#                     font=("Segoe UI", 10), bg="#ffffff",
-#                     fg="#999").pack(pady=20)
-#
-#         canvas.pack(side="left", fill="both", expand=True)
-#         if self.available_groups:
-#             scrollbar.pack(side="right", fill="y")
-#
-#         # Select/Deselect buttons
-#         btn_row = tk.Frame(card, bg="#ffffff")
-#         btn_row.pack(fill="x", padx=20, pady=(0, 15))
-#
-#         tb.Button(btn_row, text="Select All", bootstyle="info-outline",
-#                  width=12, command=self._select_all_groups).pack(side="left", padx=(0, 5))
-#         tb.Button(btn_row, text="Deselect All", bootstyle="secondary-outline",
-#                  width=12, command=self._deselect_all_groups).pack(side="left")
-#
-#     def _create_question_count_section(self, parent):
-#         """Create question count section."""
-#         # Card
-#         card = tk.Frame(parent, bg="#ffffff", relief="flat",
-#                        highlightbackground="#c5cae9", highlightthickness=1)
-#         card.pack(fill="x")
-#
-#         # Header
-#         header = tk.Frame(card, bg="#ffffff")
-#         header.pack(fill="x", padx=20, pady=(15, 10))
-#
-#         tk.Label(header, text="🔢 Quiz Length",
-#                 font=("Segoe UI", 12, "bold"),
-#                 bg="#ffffff", fg="#283593").pack(anchor="w")
-#
-#         tk.Label(header, text="How many questions?",
-#                 font=("Segoe UI", 9),
-#                 bg="#ffffff", fg="#666").pack(anchor="w", pady=(3, 0))
-#
-#         # Options
-#         options = tk.Frame(card, bg="#ffffff")
-#         options.pack(fill="x", padx=20, pady=(0, 15))
-#
-#         self.quiz_length = tk.StringVar(value="all")
-#
-#         ttk.Radiobutton(options, text="All available words",
-#                        variable=self.quiz_length,
-#                        value="all").pack(anchor="w", pady=3)
-#
-#         custom_row = tk.Frame(options, bg="#ffffff")
-#         custom_row.pack(anchor="w", pady=3)
-#
-#         ttk.Radiobutton(custom_row, text="Custom:",
-#                        variable=self.quiz_length,
-#                        value="custom").pack(side="left")
-#
-#         self.custom_count = tk.IntVar(value=20)
-#         ttk.Spinbox(custom_row, from_=5, to=100, width=10,
-#                    textvariable=self.custom_count).pack(side="left", padx=5)
-#
-#         tk.Label(custom_row, text="questions", bg="#ffffff",
-#                 font=("Segoe UI", 9), fg="#666").pack(side="left")
-#
-#     def _create_buttons(self):
-#         """Create action buttons."""
-#         btn_frame = tk.Frame(self, bg="#e8eaf6")
-#         btn_frame.pack(fill="x", padx=25, pady=(0, 25))
-#
-#         tb.Button(btn_frame, text="Cancel", bootstyle="secondary",
-#                  width=15, command=self._on_cancel).pack(side="right", padx=(10, 0))
-#
-#         tb.Button(btn_frame, text="Start Quiz →", bootstyle="success",
-#                  width=15, command=self._on_start).pack(side="right")
-#
-#     def _select_all_groups(self):
-#         """Select all groups."""
-#         for var in self.group_vars.values():
-#             var.set(1)
-#
-#     def _deselect_all_groups(self):
-#         """Deselect all groups."""
-#         for var in self.group_vars.values():
-#             var.set(0)
-#
-#     def _on_start(self):
-#         """Handle Start Quiz button."""
-#         # Collect settings
-#         difficulties = []
-#         if self.diff_new.get():
-#             difficulties.append("NEW_WORD")
-#         if self.diff_easy.get():
-#             difficulties.append("EASY")
-#         if self.diff_medium.get():
-#             difficulties.append("MEDIUM")
-#         if self.diff_hard.get():
-#             difficulties.append("HARD")
-#
-#         # Check if at least one difficulty selected
-#         if not difficulties:
-#             tk.messagebox.showwarning(
-#                 "No Difficulty Selected",
-#                 "Please select at least one difficulty level.",
-#                 parent=self
-#             )
-#             return
-#
-#         # Collect selected groups
-#         selected_groups = [
-#             group for group, var in self.group_vars.items()
-#             if var.get() == 1
-#         ]
-#
-#         # Get question count
-#         if self.quiz_length.get() == "all":
-#             question_count = None  # All questions
-#         else:
-#             question_count = self.custom_count.get()
-#
-#         # Set result
-#         self.result = {
-#             "difficulties": difficulties,
-#             "groups": selected_groups if selected_groups else None,
-#             "question_count": question_count
-#         }
-#
-#         self.destroy()
-#
-#     def _on_cancel(self):
-#         """Handle Cancel button."""
-#         self.result = None
-#         self.destroy()
-#
-#     def _center_dialog(self):
-#         """Center dialog on parent."""
-#         self.update_idletasks()
-#         parent = self.master
-#
-#         x = parent.winfo_rootx() + (parent.winfo_width() - self.winfo_width()) // 2
-#         y = parent.winfo_rooty() + (parent.winfo_height() - self.winfo_height()) // 2
-#
-#         self.geometry(f"+{x}+{y}")
-
-
-"""
-Quiz Setup Dialog - Compact Horizontal Design
-
-Modern, space-efficient layout with sections side-by-side.
-"""
 import tkinter as tk
-from tkinter import ttk, simpledialog, messagebox
+from tkinter import ttk, messagebox
 import ttkbootstrap as tb
 from typing import List, Dict, Optional
+import re
 
 
 class QuizSetupDialog(tk.Toplevel):
-    """
-    Compact quiz setup dialog with horizontal layout.
-
-    Features:
-    - Three sections side-by-side
-    - Minimal vertical space
-    - Modern card design
-    - Easy to scan
-    """
-
     def __init__(self, parent, available_groups: List[str]):
         super().__init__(parent)
 
@@ -335,7 +14,7 @@ class QuizSetupDialog(tk.Toplevel):
 
         # Configuration
         self.title("Quiz Setup")
-        self.geometry("850x500")
+        self.geometry("850x550")
         self.resizable(False, False)
 
         # Make modal
@@ -357,7 +36,7 @@ class QuizSetupDialog(tk.Toplevel):
         self.wait_window()
 
     def _create_header(self):
-        """Create compact header."""
+        """Create header."""
         header = tk.Frame(self, bg="#3f51b5", height=60)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -374,37 +53,31 @@ class QuizSetupDialog(tk.Toplevel):
                  bg="#3f51b5", fg="#e8eaf6").pack(side="left", padx=(15, 0))
 
     def _create_content(self):
-        """Create horizontal layout with three columns."""
-        # Main content area
+        """Create horizontal layout."""
         content = tk.Frame(self, bg="#e8eaf6")
         content.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Configure grid for 3 columns
         content.columnconfigure(0, weight=1)
         content.columnconfigure(1, weight=1)
         content.columnconfigure(2, weight=1)
 
-        # Three columns
         self._create_difficulty_column(content)
         self._create_groups_column(content)
         self._create_settings_column(content)
 
     def _create_difficulty_column(self, parent):
-        """Create difficulty selection column."""
-        # Card
+        """Create difficulty column."""
         card = tk.Frame(parent, bg="#ffffff", relief="flat",
                         highlightbackground="#c5cae9", highlightthickness=1)
         card.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
 
-        # Header
-        header = tk.Frame(card, bg="#43a047")  # Green
+        header = tk.Frame(card, bg="#43a047")
         header.pack(fill="x")
 
         tk.Label(header, text="📊 Difficulty",
                  font=("Segoe UI", 11, "bold"),
                  bg="#43a047", fg="#ffffff").pack(pady=12, padx=15)
 
-        # Content
         content = tk.Frame(card, bg="#ffffff")
         content.pack(fill="both", expand=True, padx=15, pady=15)
 
@@ -412,7 +85,6 @@ class QuizSetupDialog(tk.Toplevel):
                  font=("Segoe UI", 8),
                  bg="#ffffff", fg="#666").pack(anchor="w", pady=(0, 8))
 
-        # Checkboxes
         self.diff_new = tk.IntVar(value=1)
         self.diff_easy = tk.IntVar(value=1)
         self.diff_medium = tk.IntVar(value=1)
@@ -428,21 +100,18 @@ class QuizSetupDialog(tk.Toplevel):
                         variable=self.diff_hard).pack(anchor="w", pady=3)
 
     def _create_groups_column(self, parent):
-        """Create groups selection column."""
-        # Card
+        """Create groups column with hierarchical tree."""
         card = tk.Frame(parent, bg="#ffffff", relief="flat",
                         highlightbackground="#c5cae9", highlightthickness=1)
         card.grid(row=0, column=1, sticky="nsew", padx=4)
 
-        # Header
-        header = tk.Frame(card, bg="#1e88e5")  # Blue
+        header = tk.Frame(card, bg="#1e88e5")
         header.pack(fill="x")
 
         tk.Label(header, text="📚 Groups",
                  font=("Segoe UI", 11, "bold"),
                  bg="#1e88e5", fg="#ffffff").pack(pady=12, padx=15)
 
-        # Content
         content = tk.Frame(card, bg="#ffffff")
         content.pack(fill="both", expand=True, padx=15, pady=15)
 
@@ -450,41 +119,31 @@ class QuizSetupDialog(tk.Toplevel):
                  font=("Segoe UI", 8),
                  bg="#ffffff", fg="#666").pack(anchor="w", pady=(0, 8))
 
-        # Scrollable groups
-        groups_frame = tk.Frame(content, bg="#ffffff")
-        groups_frame.pack(fill="both", expand=True)
+        # Tree view with scrollbar
+        tree_frame = tk.Frame(content, bg="#ffffff")
+        tree_frame.pack(fill="both", expand=True)
 
-        canvas = tk.Canvas(groups_frame, height=120, bg="#ffffff",
-                           highlightthickness=0)
-        scrollbar = ttk.Scrollbar(groups_frame, orient="vertical",
-                                  command=canvas.yview)
-        scrollable = tk.Frame(canvas, bg="#ffffff")
+        # Create treeview
+        self.groups_tree = ttk.Treeview(tree_frame, show="tree", height=10)
+        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical",
+                                  command=self.groups_tree.yview)
+        self.groups_tree.configure(yscrollcommand=scrollbar.set)
 
-        scrollable.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+        # Pack tree and scrollbar
+        self.groups_tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
-        canvas.create_window((0, 0), window=scrollable, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        # Populate tree with hierarchical groups
+        self._populate_groups_tree()
 
-        # Group checkboxes
-        self.group_vars = {}
+        # Bind click events
+        self.groups_tree.bind("<Button-1>", self._on_tree_click)
 
-        if self.available_groups:
-            for group in sorted(self.available_groups):
-                var = tk.IntVar(value=1)
-                ttk.Checkbutton(scrollable, text=group,
-                                variable=var).pack(anchor="w", pady=2)
-                self.group_vars[group] = var
-        else:
-            tk.Label(scrollable, text="No groups",
-                     font=("Segoe UI", 9), bg="#ffffff",
-                     fg="#999").pack(pady=10)
+        # Mouse wheel scrolling
+        def _on_mousewheel(event):
+            self.groups_tree.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
-        canvas.pack(side="left", fill="both", expand=True)
-        if self.available_groups:
-            scrollbar.pack(side="right", fill="y")
+        self.groups_tree.bind("<MouseWheel>", _on_mousewheel)
 
         # Quick buttons
         if self.available_groups:
@@ -496,26 +155,192 @@ class QuizSetupDialog(tk.Toplevel):
             tb.Button(btn_row, text="None", bootstyle="secondary-outline",
                       width=8, command=self._deselect_all_groups).pack(side="left")
 
+    def _populate_groups_tree(self):
+        """Populate tree with hierarchical group structure."""
+        if not self.available_groups:
+            return
+
+        # Organize groups into hierarchy
+        hierarchy = self._organize_groups_hierarchy()
+
+        # Storage for tree items
+        self.tree_items = {}  # Maps group name to tree item id
+        self.item_states = {}  # Maps item id to checkbox state (True/False)
+
+        # Add to tree
+        for book_name, chapters in sorted(hierarchy.items()):
+            if len(chapters) == 1 and chapters[0] == book_name:
+                # Single group, no hierarchy
+                item_id = self.groups_tree.insert("", "end", text=f"☐ {book_name}",
+                                                  tags=("unchecked",))
+                self.tree_items[book_name] = item_id
+                self.item_states[item_id] = True  # Selected by default
+                # Update to checked
+                self.groups_tree.item(item_id, text=f"☑ {book_name}", tags=("checked",))
+            else:
+                # Book with chapters
+                book_id = self.groups_tree.insert("", "end", text=f"☐ {book_name} ({len(chapters)})",
+                                                  tags=("book", "unchecked"))
+                self.tree_items[f"__BOOK__{book_name}"] = book_id
+                self.item_states[book_id] = True  # Selected by default
+
+                # Add chapters
+                for chapter in sorted(chapters):
+                    chapter_id = self.groups_tree.insert(book_id, "end", text=f"☐ {chapter}",
+                                                         tags=("chapter", "unchecked"))
+                    self.tree_items[chapter] = chapter_id
+                    self.item_states[chapter_id] = True  # Selected by default
+                    # Update to checked
+                    self.groups_tree.item(chapter_id, text=f"☑ {chapter}", tags=("chapter", "checked"))
+
+                # Update book checkbox
+                self.groups_tree.item(book_id, text=f"☑ {book_name} ({len(chapters)})",
+                                      tags=("book", "checked"))
+
+    def _organize_groups_hierarchy(self) -> Dict[str, List[str]]:
+        """
+        Organize groups into book -> chapters hierarchy.
+
+        Returns:
+            Dict mapping book name to list of chapter names
+        """
+        hierarchy = {}
+
+        for group in self.available_groups:
+            # Try to extract book and chapter
+            # Pattern: "Book Name Chapter" or "Book Name 1" etc.
+            match = re.match(r'^(.+?)\s+(\d+|[IVX]+)$', group)
+
+            if match:
+                book_name = match.group(1).strip()
+                chapter = group
+
+                if book_name not in hierarchy:
+                    hierarchy[book_name] = []
+                hierarchy[book_name].append(chapter)
+            else:
+                # No chapter number, treat as standalone book
+                hierarchy[group] = [group]
+
+        return hierarchy
+
+    def _on_tree_click(self, event):
+        """Handle tree item click to toggle checkbox."""
+        item = self.groups_tree.identify_row(event.y)
+        if not item:
+            return
+
+        # Toggle state
+        current_state = self.item_states.get(item, False)
+        new_state = not current_state
+        self.item_states[item] = new_state
+
+        # Update checkbox symbol
+        text = self.groups_tree.item(item, "text")
+        checkbox = "☑" if new_state else "☐"
+
+        # Remove old checkbox and add new one
+        if text.startswith("☑") or text.startswith("☐"):
+            text = text[2:]  # Remove checkbox and space
+
+        self.groups_tree.item(item, text=f"{checkbox} {text}")
+
+        # Update tags
+        tags = list(self.groups_tree.item(item, "tags"))
+        if "checked" in tags:
+            tags.remove("checked")
+        if "unchecked" in tags:
+            tags.remove("unchecked")
+        tags.append("checked" if new_state else "unchecked")
+        self.groups_tree.item(item, tags=tuple(tags))
+
+        # If it's a book, update all children
+        children = self.groups_tree.get_children(item)
+        if children:
+            for child in children:
+                self.item_states[child] = new_state
+                child_text = self.groups_tree.item(child, "text")
+                if child_text.startswith("☑") or child_text.startswith("☐"):
+                    child_text = child_text[2:]
+                self.groups_tree.item(child, text=f"{checkbox} {child_text}")
+
+                child_tags = list(self.groups_tree.item(child, "tags"))
+                if "checked" in child_tags:
+                    child_tags.remove("checked")
+                if "unchecked" in child_tags:
+                    child_tags.remove("unchecked")
+                child_tags.append("checked" if new_state else "unchecked")
+                self.groups_tree.item(child, tags=tuple(child_tags))
+
+        # If it's a chapter, update parent book
+        parent = self.groups_tree.parent(item)
+        if parent:
+            siblings = self.groups_tree.get_children(parent)
+            all_checked = all(self.item_states.get(s, False) for s in siblings)
+            any_checked = any(self.item_states.get(s, False) for s in siblings)
+
+            parent_checkbox = "☑" if all_checked else "☐"
+            parent_text = self.groups_tree.item(parent, "text")
+            if parent_text.startswith("☑") or parent_text.startswith("☐"):
+                parent_text = parent_text[2:]
+
+            self.groups_tree.item(parent, text=f"{parent_checkbox} {parent_text}")
+            self.item_states[parent] = all_checked
+
+    def _select_all_groups(self):
+        """Select all groups."""
+        for item in self.groups_tree.get_children():
+            self._set_item_checked(item, True)
+
+    def _deselect_all_groups(self):
+        """Deselect all groups."""
+        for item in self.groups_tree.get_children():
+            self._set_item_checked(item, False)
+
+    def _set_item_checked(self, item, checked):
+        """Recursively set item and children checked state."""
+        self.item_states[item] = checked
+        text = self.groups_tree.item(item, "text")
+        checkbox = "☑" if checked else "☐"
+
+        if text.startswith("☑") or text.startswith("☐"):
+            text = text[2:]
+
+        self.groups_tree.item(item, text=f"{checkbox} {text}")
+
+        # Update children
+        for child in self.groups_tree.get_children(item):
+            self._set_item_checked(child, checked)
+
+    def _get_selected_groups(self) -> List[str]:
+        """Get list of selected group names."""
+        selected = []
+
+        for group_name, item_id in self.tree_items.items():
+            if group_name.startswith("__BOOK__"):
+                continue  # Skip book parents
+
+            if self.item_states.get(item_id, False):
+                selected.append(group_name)
+
+        return selected
+
     def _create_settings_column(self, parent):
         """Create settings column."""
-        # Card
         card = tk.Frame(parent, bg="#ffffff", relief="flat",
                         highlightbackground="#c5cae9", highlightthickness=1)
         card.grid(row=0, column=2, sticky="nsew", padx=(8, 0))
 
-        # Header
-        header = tk.Frame(card, bg="#fb8c00")  # Orange
+        header = tk.Frame(card, bg="#fb8c00")
         header.pack(fill="x")
 
         tk.Label(header, text="⚙️ Settings",
                  font=("Segoe UI", 11, "bold"),
                  bg="#fb8c00", fg="#ffffff").pack(pady=12, padx=15)
 
-        # Content
         content = tk.Frame(card, bg="#ffffff")
         content.pack(fill="both", expand=True, padx=15, pady=15)
 
-        # Quiz length
         tk.Label(content, text="Quiz Length:",
                  font=("Segoe UI", 10, "bold"),
                  bg="#ffffff", fg="#283593").pack(anchor="w", pady=(0, 8))
@@ -540,17 +365,14 @@ class QuizSetupDialog(tk.Toplevel):
         tk.Label(custom_row, text="questions", bg="#ffffff",
                  font=("Segoe UI", 8), fg="#666").pack(side="left")
 
-        # Spacer
         tk.Frame(content, bg="#ffffff", height=15).pack()
 
-        # Quick start option
         tk.Label(content, text="Quick Options:",
                  font=("Segoe UI", 10, "bold"),
                  bg="#ffffff", fg="#283593").pack(anchor="w", pady=(5, 8))
 
         tk.Frame(content, bg="#e0e0e0", height=1).pack(fill="x", pady=8)
 
-        # Quick preset buttons
         preset_frame = tk.Frame(content, bg="#ffffff")
         preset_frame.pack(fill="x")
 
@@ -571,24 +393,20 @@ class QuizSetupDialog(tk.Toplevel):
         btn_frame = tk.Frame(self, bg="#e8eaf6")
         btn_frame.pack(fill="x", padx=20, pady=(0, 20))
 
-        # Left side - info
         info_label = tk.Label(btn_frame,
-                              text="💡 Tip: Select at least one difficulty level",
+                              text="💡 Tip: Click books to expand/collapse chapters",
                               font=("Segoe UI", 8),
                               bg="#e8eaf6", fg="#666")
         info_label.pack(side="left")
 
-        # Right side - buttons
         tb.Button(btn_frame, text="Cancel", bootstyle="secondary",
                   width=12, command=self._on_cancel).pack(side="right", padx=(8, 0))
 
         tb.Button(btn_frame, text="Start Quiz →", bootstyle="success",
                   width=14, command=self._on_start).pack(side="right")
 
-    # ==================== Preset Methods ====================
-
     def _preset_easy(self):
-        """Easy quiz preset - only new and easy words."""
+        """Easy quiz preset."""
         self.diff_new.set(1)
         self.diff_easy.set(1)
         self.diff_medium.set(0)
@@ -597,7 +415,7 @@ class QuizSetupDialog(tk.Toplevel):
         self.custom_count.set(15)
 
     def _preset_hard(self):
-        """Hard quiz preset - medium and hard only."""
+        """Hard quiz preset."""
         self.diff_new.set(0)
         self.diff_easy.set(0)
         self.diff_medium.set(1)
@@ -605,7 +423,7 @@ class QuizSetupDialog(tk.Toplevel):
         self.quiz_length.set("all")
 
     def _preset_quick(self):
-        """Quick quiz preset - 10 questions, all levels."""
+        """Quick quiz preset."""
         self.diff_new.set(1)
         self.diff_easy.set(1)
         self.diff_medium.set(1)
@@ -613,21 +431,8 @@ class QuizSetupDialog(tk.Toplevel):
         self.quiz_length.set("custom")
         self.custom_count.set(10)
 
-    # ==================== Helper Methods ====================
-
-    def _select_all_groups(self):
-        """Select all groups."""
-        for var in self.group_vars.values():
-            var.set(1)
-
-    def _deselect_all_groups(self):
-        """Deselect all groups."""
-        for var in self.group_vars.values():
-            var.set(0)
-
     def _on_start(self):
         """Handle Start Quiz button."""
-        # Collect settings
         difficulties = []
         if self.diff_new.get():
             difficulties.append("NEW_WORD")
@@ -638,7 +443,6 @@ class QuizSetupDialog(tk.Toplevel):
         if self.diff_hard.get():
             difficulties.append("HARD")
 
-        # Validate
         if not difficulties:
             messagebox.showwarning(
                 "No Difficulty Selected",
@@ -647,19 +451,13 @@ class QuizSetupDialog(tk.Toplevel):
             )
             return
 
-        # Collect groups
-        selected_groups = [
-            group for group, var in self.group_vars.items()
-            if var.get() == 1
-        ]
+        selected_groups = self._get_selected_groups()
 
-        # Get question count
         if self.quiz_length.get() == "all":
             question_count = None
         else:
             question_count = self.custom_count.get()
 
-        # Set result
         self.result = {
             "difficulties": difficulties,
             "groups": selected_groups if selected_groups else None,
