@@ -83,9 +83,54 @@ class AllWordsController:
         except Exception as e:
             self._show_error("Unexpected Error", f"An error occurred: {e}")
 
-    def refresh_words(self) -> None:
-        """Refresh the word display (e.g., after changes)."""
-        self.show_words()
+    def refresh_words(self, preserve_view: bool = True) -> None:
+        """
+        Refresh the word display (e.g., after changes).
+
+        Args:
+            preserve_view: If True, preserves current sort order and scroll position
+        """
+        if preserve_view:
+            # Save current state (with None checks)
+            last_sort = getattr(self.page, '_last_sort_column', None)
+            sort_reverse = getattr(self.page, '_sort_reverse', False)
+
+            # Get currently selected item
+            selection = self.page.tree.selection()
+            selected_values = None
+            if selection:
+                try:
+                    selected_values = self.page.tree.item(selection[0], 'values')
+                except:
+                    pass
+
+            # Reload data
+            self.show_words()
+
+            # Restore sort order ONLY if there was one
+            if last_sort is not None:
+                try:
+                    self.page._sort_by_column(last_sort)
+                    # Check if we need to flip direction
+                    current_reverse = getattr(self.page, '_sort_reverse', False)
+                    if sort_reverse != current_reverse:
+                        # Sort again to flip direction
+                        self.page._sort_by_column(last_sort)
+                except Exception as e:
+                    print(f"Could not restore sort: {e}")
+
+            # Restore selection
+            if selected_values:
+                try:
+                    for item in self.page.tree.get_children():
+                        if self.page.tree.item(item, 'values') == selected_values:
+                            self.page.tree.selection_set(item)
+                            self.page.tree.see(item)
+                            break
+                except Exception as e:
+                    print(f"Could not restore selection: {e}")
+        else:
+            self.show_words()
 
     # ==================== Event Handlers ====================
 

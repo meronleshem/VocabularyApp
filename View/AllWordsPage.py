@@ -49,7 +49,7 @@ class AllWordsPage(ttk.Frame):
         self.all_words_cache: List[Tuple] = []
         self._filtered_words: List[Tuple] = []
         self._sort_reverse: bool = False
-        self._last_sort_column: Optional[str] = None
+        self._last_sort_column: Optional[str] = 'English'
 
         # Search state
         self.search_placeholder: str = "Search..."

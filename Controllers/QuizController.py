@@ -1,8 +1,5 @@
 """
-Quiz Controller - Auto-shows setup dialog
-
-No need to modify AddWordController!
-Dialog appears automatically when navigating to quiz page.
+Quiz Controller
 """
 import random
 from typing import Dict, Tuple, List, Optional
@@ -12,12 +9,12 @@ from Database.DatabaseManager import DatabaseManager
 from Utils.DiffucltyEnum import Difficulty
 from View.QuizPage import DifficultyDialog, GroupSelectionDialog
 from View.QuizSetupDialog import QuizSetupDialog
-
+from View.QuizResultsDialog import QuizResultsDialog
+from Utils.SoundUtil import play_sound
 
 class QuizController:
     """
     Controller for Quiz page.
-    Automatically shows setup dialog on first visit.
     """
 
     def __init__(self, model: DatabaseManager, view: ViewManager):
@@ -43,6 +40,9 @@ class QuizController:
         # Statistics
         self.correct_count: int = 0
         self.wrong_count: int = 0
+
+        # Mistake tracking - List of (english, user_answer, correct_answer)
+        self.mistakes: List[Tuple[str, str, str]] = []
 
         # Quiz configuration
         self.max_questions: Optional[int] = None
@@ -178,6 +178,7 @@ class QuizController:
         self.new_quiz = True
         self.correct_count = 0
         self.wrong_count = 0
+        self.mistakes = []  # Reset mistakes
         self.page.update_stats(0, 0)
         self.new_word_quiz()
 
@@ -228,6 +229,7 @@ class QuizController:
         self.word_index += 1
         self.page.update_progress(self.word_index, self.total_questions)
         self.page.show_options(self.curr_eng_word, self.curr_ans, options)
+        play_sound(self.curr_eng_word)
         self.page.next_btn.config(state="enabled")
 
     def next_question(self):
@@ -301,6 +303,8 @@ class QuizController:
             self.correct_count += 1
         else:
             self.wrong_count += 1
+            # Track mistake: (english_word, user_answer, correct_answer)
+            self.mistakes.append((self.curr_eng_word, selected, self.curr_ans))
 
         self.page.update_stats(self.correct_count, self.wrong_count)
 
@@ -320,6 +324,11 @@ class QuizController:
 
         # Show result
         self.page.show_result(is_correct, self.curr_ans if not is_correct else None)
+
+        # Check if quiz is finished
+        if self.word_index >= self.total_questions:
+            # Schedule results dialog to show after current question result is visible
+            self.page.after(1500, self._show_results_dialog)
 
     # ==================== Difficulty ====================
 
@@ -408,3 +417,31 @@ class QuizController:
         except Exception as e:
             print(f"Error: {e}")
             self.page.res_label.config(text="Failed to filter groups", fg="#dc3545")
+
+    # ==================== Quiz Results ====================
+
+    def _show_results_dialog(self):
+        """Show quiz results dialog at end of quiz."""
+        try:
+            # Show results dialog
+            dialog = QuizResultsDialog(
+                self.page,
+                self.correct_count,
+                self.wrong_count,
+                self.mistakes
+            )
+
+            # Handle user action
+            if dialog.action == "new_quiz":
+                # Start new quiz with setup dialog
+                self.start_new_quiz_with_dialog()
+            elif dialog.action == "review":
+                # Could implement review mode here
+                # For now, just show a message
+                self.page.res_label.config(
+                    text="Review mode: Study the mistakes shown in the dialog",
+                    fg="#1e88e5"
+                )
+
+        except Exception as e:
+            print(f"Error showing results dialog: {e}")
