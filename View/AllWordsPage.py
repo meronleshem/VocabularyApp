@@ -59,8 +59,10 @@ class AllWordsPage(ttk.Frame):
         self._setup_grid()
 
         # Create UI components
+
         self._create_title()
         self._create_search_bar()
+        self._create_statistics()
         self._create_table()
         self._create_footer()
         self._create_bottom_bar()
@@ -71,7 +73,7 @@ class AllWordsPage(ttk.Frame):
     def _setup_grid(self) -> None:
         """Configure grid weights for responsive layout."""
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(2, weight=1)  # Table expands
+        self.rowconfigure(3, weight=1)  # Table expands
 
     def _create_title(self) -> None:
         """Create and place the page title."""
@@ -103,7 +105,7 @@ class AllWordsPage(ttk.Frame):
     def _create_table(self) -> None:
         """Create the word table with scrollbar and sorting."""
         table_frame = ttk.Frame(self)
-        table_frame.grid(row=2, column=0, sticky="nsew")
+        table_frame.grid(row=3, column=0, sticky="nsew")
         table_frame.columnconfigure(0, weight=1)
         table_frame.rowconfigure(0, weight=1)
 
@@ -142,6 +144,74 @@ class AllWordsPage(ttk.Frame):
         self.tree.tag_configure("oddrow", background="#f9f9f9")
         self.tree.tag_configure("evenrow", background="white")
 
+    def _create_statistics(self) -> None:
+        """Create statistics section showing word counts by difficulty."""
+        stats_frame = ttk.Frame(self)
+        stats_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
+
+        # Title
+        title = ttk.Label(
+            stats_frame,
+            text="📊 Statistics:",
+            font=("Segoe UI", 10, "bold")
+        )
+        title.pack(side="left", padx=(0, 15))
+
+        # Difficulty count labels
+        self.stat_new = ttk.Label(
+            stats_frame,
+            text="New: 0",
+            font=("Segoe UI", 9),
+            foreground="#757575"
+        )
+        self.stat_new.pack(side="left", padx=(0, 15))
+
+        self.stat_easy = ttk.Label(
+            stats_frame,
+            text="Easy: 0",
+            font=("Segoe UI", 9),
+            foreground="#43a047"
+        )
+        self.stat_easy.pack(side="left", padx=(0, 15))
+
+        self.stat_medium = ttk.Label(
+            stats_frame,
+            text="Medium: 0",
+            font=("Segoe UI", 9),
+            foreground="#fb8c00"
+        )
+        self.stat_medium.pack(side="left", padx=(0, 15))
+
+        self.stat_hard = ttk.Label(
+            stats_frame,
+            text="Hard: 0",
+            font=("Segoe UI", 9),
+            foreground="#e53935"
+        )
+        self.stat_hard.pack(side="left")
+
+    def _update_statistics(self) -> None:
+        """Update statistics labels with word counts by difficulty."""
+        # Count words by difficulty
+        counts = {
+            "NEW_WORD": 0,
+            "EASY": 0,
+            "MEDIUM": 0,
+            "HARD": 0
+        }
+
+        for word in self.all_words_cache:
+            if len(word) >= 3:
+                difficulty = str(word[2]).upper()
+                if difficulty in counts:
+                    counts[difficulty] += 1
+
+        # Update labels
+        self.stat_new.config(text=f"New: {counts['NEW_WORD']}")
+        self.stat_easy.config(text=f"Easy: {counts['EASY']}")
+        self.stat_medium.config(text=f"Medium: {counts['MEDIUM']}")
+        self.stat_hard.config(text=f"Hard: {counts['HARD']}")
+
     def _create_footer(self) -> None:
         """Create footer with instructions."""
         self.footer_label = ttk.Label(
@@ -150,12 +220,12 @@ class AllWordsPage(ttk.Frame):
             foreground="gray",
             font=("Segoe UI", 9)
         )
-        self.footer_label.grid(row=3, column=0, sticky="w", pady=(8, 0))
+        self.footer_label.grid(row=4, column=0, sticky="w", pady=(8, 0))
 
     def _create_bottom_bar(self) -> None:
         """Create bottom bar with navigation and word count."""
         bottom_bar = ttk.Frame(self)
-        bottom_bar.grid(row=4, column=0, sticky="ew", pady=(10, 0))
+        bottom_bar.grid(row=5, column=0, sticky="ew", pady=(10, 0))
 
         # Home button
         self.add_word_btn = ttk.Button(
@@ -226,6 +296,7 @@ class AllWordsPage(ttk.Frame):
         #self.all_words_cache = word_list.copy()
         #self._filtered_words = word_list.copy()
         self._populate_tree(self._filtered_words)
+        self._update_statistics()
         self._update_word_count()
 
     def _populate_tree(self, words: List[Tuple]) -> None:
