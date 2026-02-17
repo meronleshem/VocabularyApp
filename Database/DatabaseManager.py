@@ -93,7 +93,7 @@ class DatabaseManager:
     def add_highlight_words_from_pdf(self, filepath):
         words_to_add = extract_highlight_words_from_pdf(filepath)
         for word, pack in words_to_add:
-            group_name = f"The Blade Itself {pack}"
+            group_name = f"Before They Are Hanged {pack}"
             self.add_word(word, group_name)
 
     def get_table_size(self):
@@ -113,6 +113,15 @@ class DatabaseManager:
 
     def get_all_groups_names(self):
         self.cursor.execute("SELECT DISTINCT group_name FROM vocabulary")
+        return self.cursor.fetchall()
+
+    def get_words_with_examples(self):
+        query = """
+            SELECT engWord, hebWord, difficulty, examples, group_name 
+            FROM vocabulary 
+            WHERE examples IS NOT NULL AND examples != ''
+        """
+        self.cursor.execute(query)
         return self.cursor.fetchall()
 
     def close_db_connection(self):

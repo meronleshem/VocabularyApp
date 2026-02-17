@@ -153,6 +153,14 @@ class AddWordPage(tk.Frame):
         )
         self.quiz_btn.grid(row=4, column=0, sticky="ew", pady=4)
 
+        self.fill_blank_quiz_btn = tb.Button(
+            content,
+            text="📝 Fill-in-Blank Quiz",
+            bootstyle="warning",
+            width=28
+        )
+        self.fill_blank_quiz_btn.grid(row=5, column=0, sticky="ew", pady=5)
+
     def _create_right_panel(self):
         """Create right panel with translation display."""
         # Right container

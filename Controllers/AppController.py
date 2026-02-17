@@ -3,6 +3,7 @@ from Database.DatabaseManager import DatabaseManager
 from Controllers.AddWordController import AddWordController
 from Controllers.AllWordsController import AllWordsController
 from Controllers.QuizController import QuizController
+from Controllers.FillBlankQuizController import FillBlankQuizController
 
 
 class AppController:
@@ -12,7 +13,7 @@ class AppController:
         self.add_word_controller = AddWordController(model, view)
         self.all_words_controller = AllWordsController(model, view)
         self.quiz_controller = QuizController(model, view)
-
+        self.fill_blank_controller = FillBlankQuizController(model, view)
 
 
 
