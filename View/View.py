@@ -11,6 +11,7 @@ from ttkbootstrap import Style
 from View.AddWordPage import AddWordPage
 from View.AllWordsPage import AllWordsPage
 from View.QuizPage import QuizPage
+from View.FillBlankQuizPage import FillBlankQuizPage
 
 
 class ViewManager(tk.Tk):
@@ -24,7 +25,8 @@ class ViewManager(tk.Tk):
     PAGE_SIZES = {
         "add_word_page": ("850x600", 800, 550),  # (geometry, min_width, min_height)
         "all_words_page": ("1000x700", 900, 650),
-        "quiz_page": ("1100x850", 950, 700)
+        "quiz_page": ("1100x850", 950, 700),
+        "fill_blank_quiz_page": ("1100x750", 950, 700)
     }
 
     def __init__(self):
@@ -52,7 +54,8 @@ class ViewManager(tk.Tk):
         self.pages = {
             "add_word_page": AddWordPage(self.container),
             "all_words_page": AllWordsPage(self.container),
-            "quiz_page": QuizPage(self.container)
+            "quiz_page": QuizPage(self.container),
+            "fill_blank_quiz_page": FillBlankQuizPage(self.container)
         }
 
         # Track current page
