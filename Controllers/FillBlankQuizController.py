@@ -226,8 +226,8 @@ class FillBlankQuizController:
 
         # Create sentence with blank
         blank_sentence = self.current_sentence.replace(self.current_word, "_____")
-        blank_sentence = blank_sentence.replace(self.current_word.capitalize(), "_____")
-        blank_sentence = blank_sentence.replace(self.current_word.upper(), "_____")
+        #blank_sentence = blank_sentence.replace(self.current_word.capitalize(), "_____")
+        #blank_sentence = blank_sentence.replace(self.current_word.upper(), "_____")
 
         # Generate options
         options = self._generate_options()
