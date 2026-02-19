@@ -178,22 +178,22 @@ class AllWordsController:
             # Get available groups for dropdown
             available_groups = self._get_available_groups()
 
-            # Show dialog
-            dialog = WordEditDialog(
-                self.page,
-                display_data,
-                available_groups
+            word_data_with_examples = (
+                word_details[1],  # english
+                word_details[2],  # hebrew
+                word_details[4],  # difficulty
+                word_details[5],  # group
+                word_details[3]  # examples
             )
 
+            # Show dialog
+            dialog = WordEditDialog(self.page, word_data_with_examples, available_groups)
+
             if dialog.result:
-                new_difficulty, new_group = dialog.result
+                new_difficulty, new_group, new_examples = dialog.result  # Now 3 values!
 
                 # Update database
-                changes_made = self._update_word_properties(
-                    word_details,
-                    new_difficulty,
-                    new_group
-                )
+                changes_made = self._update_word_properties(word_details, new_difficulty, new_group, new_examples)
 
                 if changes_made:
                     # Refresh display
@@ -215,18 +215,8 @@ class AllWordsController:
 
     def _update_word_properties(self, word_details: Tuple,
                                 new_difficulty: str,
-                                new_group: str) -> bool:
-        """
-        Update word difficulty and/or group in database.
-
-        Args:
-            word_details: Full word details from database
-            new_difficulty: New difficulty level
-            new_group: New group name
-
-        Returns:
-            True if any changes were made
-        """
+                                new_group: str,
+                                new_examples=None) -> bool:
         changes_made = False
         hebrew_word = word_details[1]  # Primary key
 
@@ -256,7 +246,53 @@ class AllWordsController:
                 "Group updating is not yet implemented in the database."
             )
 
+        if new_examples is not None:
+            self.model.cursor.execute(
+                "UPDATE vocabulary SET examples = ? WHERE engWord = ?",
+                (new_examples, word_details[1])
+            )
+            self.model.connection.commit()
+
         return changes_made
+
+    # def _show_edit_dialog(self, word_details: Tuple, display_data: Tuple) -> None:
+    #     # Get examples from word_details (index 3 in database)
+    #
+    #     available_groups = self._get_available_groups()
+    #     word_data_with_examples = (
+    #         word_details[1],  # english
+    #         word_details[2],  # hebrew
+    #         word_details[4],  # difficulty
+    #         word_details[5],  # group
+    #         word_details[3]  # examples
+    #     )
+    #
+    #     dialog = WordEditDialog(self.page, word_data_with_examples, available_groups)
+    #
+    #     if dialog.result:
+    #         new_difficulty, new_group, new_examples = dialog.result  # Now 3 values!
+    #
+    #         # Update database with examples
+    #         self._update_word_properties(
+    #             word_details,
+    #             new_difficulty,
+    #             new_group,
+    #             new_examples  # Pass examples
+    #         )
+
+    # def _update_word_properties(self, word_details, new_difficulty, new_group, new_examples=None):
+    #     # ... existing difficulty and group updates ...
+    #
+    #     # Update examples
+    #     if new_examples is not None:
+    #         self.model.cursor.execute(
+    #             "UPDATE vocabulary SET examples = ? WHERE engWord = ?",
+    #             (new_examples, word_details[1])
+    #         )
+    #         self.model.connection.commit()
+    #
+    #     return True
+
 
     def _get_available_groups(self) -> List[str]:
         """

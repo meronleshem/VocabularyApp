@@ -153,17 +153,6 @@ class DifficultyDialog(simpledialog.Dialog):
 # ==================== Main Quiz Page ====================
 
 class QuizPage(tk.Frame):
-    """
-    Modern quiz page with improved UI/UX.
-
-    Features:
-    - Card-based layout
-    - Visual progress bar
-    - Difficulty color coding
-    - Better button styling
-    - Responsive design
-    """
-
     def __init__(self, parent):
         super().__init__(parent)
 

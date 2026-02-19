@@ -90,6 +90,19 @@ class DatabaseManager:
 
         return res is not None
 
+    def update_examples(self, eng_word: str, examples: str) -> bool:
+        """Update examples for a word."""
+        try:
+            self.cursor.execute(
+                "UPDATE vocabulary SET examples = ? WHERE engWord = ?",
+                (examples, eng_word)
+            )
+            self.connection.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating examples: {e}")
+            return False
+
     def add_highlight_words_from_pdf(self, filepath):
         words_to_add = extract_highlight_words_from_pdf(filepath)
         for word, pack in words_to_add:
