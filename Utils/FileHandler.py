@@ -53,9 +53,9 @@ def extract_highlight_words_from_pdf(filepath: str) -> List:
         page = doc.load_page(page_num)
         highlights += handle_page(page)
 
-    pack_size = 40
-    packed_list = [(word, pack_num // pack_size + 1) for pack_num, word in enumerate(highlights)]
-    return packed_list
+    #pack_size = 40
+    #packed_list = [(word, pack_num // pack_size + 1) for pack_num, word in enumerate(highlights)]
+    return highlights
 
 
 def remove_symbols(word):

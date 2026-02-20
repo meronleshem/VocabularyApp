@@ -49,12 +49,12 @@ class DatabaseManager:
     def add_word(self, eng_word, group_name="New_Words"):
         if self.is_word_exists(eng_word):
             print(f"{eng_word} is already exists. Abort adding")
-            return
+            return False
 
         heb_word = translate_to_heb(eng_word)
         if heb_word is None:
             print(f"{eng_word} is not a valid word. Abort adding")
-            return
+            return False
 
         num_of_words = self.get_table_size()
         word_id = num_of_words + 1
@@ -67,6 +67,7 @@ class DatabaseManager:
         self.connection.commit()
 
         print(f"{eng_word} was added!")
+        return True
 
     def add_from_file(self, filepath, group_name):
         words_to_add = read_words_from_file(filepath)
@@ -105,9 +106,17 @@ class DatabaseManager:
 
     def add_highlight_words_from_pdf(self, filepath):
         words_to_add = extract_highlight_words_from_pdf(filepath)
-        for word, pack in words_to_add:
-            group_name = f"Before They Are Hanged {pack}"
-            self.add_word(word, group_name)
+
+        pack_size = 40
+        curr_pack = 1
+        curr_pack_num = 0
+        for word in words_to_add:
+            group_name = f"The Last Argument of Kings {curr_pack}"
+            if self.add_word(word, group_name) is True:
+                curr_pack_num += 1
+            if curr_pack_num == pack_size:
+                curr_pack += 1
+                curr_pack_num = 0
 
     def get_table_size(self):
         self.cursor.execute(f"SELECT COUNT(*) FROM {self.table_name}")
