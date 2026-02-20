@@ -609,7 +609,7 @@ class WordEditDialog(tk.Toplevel):
 
         # Configure dialog
         self.title("Edit Word")
-        self.geometry("550x700")  # Larger to fit examples
+        self.geometry("750x700")  # Larger to fit examples
         self.resizable(False, False)
 
         # Make dialog modal
