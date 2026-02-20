@@ -5,6 +5,18 @@ from typing import List, Dict, Optional
 import re
 
 
+# ==================== Natural Sorting Function ====================
+
+def natural_sort_key(text):
+    def convert(part):
+        return int(part) if part.isdigit() else part.lower()
+
+    parts = re.split(r'(\d+)', str(text) if text else "")
+    return [convert(part) for part in parts]
+
+
+# ==================== Quiz Setup Dialog ====================
+
 class QuizSetupDialog(tk.Toplevel):
     def __init__(self, parent, available_groups: List[str]):
         super().__init__(parent)
@@ -156,7 +168,7 @@ class QuizSetupDialog(tk.Toplevel):
                       width=8, command=self._deselect_all_groups).pack(side="left")
 
     def _populate_groups_tree(self):
-        """Populate tree with hierarchical group structure."""
+        """Populate tree with hierarchical group structure - WITH NATURAL SORTING! 🎯"""
         if not self.available_groups:
             return
 
@@ -167,8 +179,8 @@ class QuizSetupDialog(tk.Toplevel):
         self.tree_items = {}  # Maps group name to tree item id
         self.item_states = {}  # Maps item id to checkbox state (True/False)
 
-        # Add to tree
-        for book_name, chapters in sorted(hierarchy.items()):
+        # 🌟 NATURAL SORT for book names! 🌟
+        for book_name, chapters in sorted(hierarchy.items(), key=natural_sort_key):
             if len(chapters) == 1 and chapters[0] == book_name:
                 # Single group, no hierarchy
                 item_id = self.groups_tree.insert("", "end", text=f"☐ {book_name}",
@@ -184,8 +196,8 @@ class QuizSetupDialog(tk.Toplevel):
                 self.tree_items[f"__BOOK__{book_name}"] = book_id
                 self.item_states[book_id] = True  # Selected by default
 
-                # Add chapters
-                for chapter in sorted(chapters):
+                # 🌟 NATURAL SORT for chapters! 🌟
+                for chapter in sorted(chapters, key=natural_sort_key):
                     chapter_id = self.groups_tree.insert(book_id, "end", text=f"☐ {chapter}",
                                                          tags=("chapter", "unchecked"))
                     self.tree_items[chapter] = chapter_id
@@ -212,36 +224,40 @@ class QuizSetupDialog(tk.Toplevel):
             match = re.match(r'^(.+?)\s+(\d+|[IVX]+)$', group)
 
             if match:
-                book_name = match.group(1).strip()
-                chapter = group
+                book_name = match.group(1)
+                full_name = group
 
                 if book_name not in hierarchy:
                     hierarchy[book_name] = []
-                hierarchy[book_name].append(chapter)
+
+                hierarchy[book_name].append(full_name)
             else:
-                # No chapter number, treat as standalone book
+                # Single group without chapter
                 hierarchy[group] = [group]
 
         return hierarchy
 
     def _on_tree_click(self, event):
-        """Handle tree item click to toggle checkbox."""
+        """Handle tree item click."""
+        region = self.groups_tree.identify_region(event.x, event.y)
+        if region != "tree":
+            return
+
         item = self.groups_tree.identify_row(event.y)
         if not item:
             return
 
-        # Toggle state
+        # Toggle checkbox
         current_state = self.item_states.get(item, False)
         new_state = not current_state
         self.item_states[item] = new_state
 
-        # Update checkbox symbol
+        # Update checkbox display
         text = self.groups_tree.item(item, "text")
         checkbox = "☑" if new_state else "☐"
 
-        # Remove old checkbox and add new one
         if text.startswith("☑") or text.startswith("☐"):
-            text = text[2:]  # Remove checkbox and space
+            text = text[2:]
 
         self.groups_tree.item(item, text=f"{checkbox} {text}")
 
@@ -254,7 +270,7 @@ class QuizSetupDialog(tk.Toplevel):
         tags.append("checked" if new_state else "unchecked")
         self.groups_tree.item(item, tags=tuple(tags))
 
-        # If it's a book, update all children
+        # If it's a parent, update all children
         children = self.groups_tree.get_children(item)
         if children:
             for child in children:
@@ -262,8 +278,10 @@ class QuizSetupDialog(tk.Toplevel):
                 child_text = self.groups_tree.item(child, "text")
                 if child_text.startswith("☑") or child_text.startswith("☐"):
                     child_text = child_text[2:]
+
                 self.groups_tree.item(child, text=f"{checkbox} {child_text}")
 
+                # Update child tags
                 child_tags = list(self.groups_tree.item(child, "tags"))
                 if "checked" in child_tags:
                     child_tags.remove("checked")

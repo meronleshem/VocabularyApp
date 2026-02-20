@@ -1,32 +1,25 @@
-"""
-All Words Page - Display and manage vocabulary words
-
-This module provides a GUI page for viewing, searching, and managing
-vocabulary words in a table format.
-"""
 import tkinter as tk
 from tkinter import ttk
 from typing import List, Tuple, Optional, Callable
+import re
 
+# ==================== Natural Sorting Function ====================
+
+def natural_sort_key(text):
+    def convert(part):
+        """Convert to int if possible, otherwise lowercase string."""
+        return int(part) if part.isdigit() else part.lower()
+
+    # Split string into text and number parts
+    parts = re.split(r'(\d+)', str(text) if text else "")
+
+    # Convert number parts to integers
+    return [convert(part) for part in parts]
+
+
+# ==================== All Words Page ====================
 
 class AllWordsPage(ttk.Frame):
-    """
-    A page displaying vocabulary words in a searchable, sortable table.
-
-    Features:
-    - Search functionality with placeholder text
-    - Sortable columns (click headers)
-    - Double-click to change difficulty
-    - Responsive layout with alternating row colors
-    - Word count display
-
-    Attributes:
-        all_words_cache: Cached list of all words
-        search_var: StringVar for search input
-        tree: Treeview widget displaying words
-        add_word_btn: Button to return to home page
-    """
-
     # Column configuration
     COLUMNS = ("English", "Hebrew", "Difficulty", "Group")
     COLUMN_CONFIG = {
@@ -37,12 +30,6 @@ class AllWordsPage(ttk.Frame):
     }
 
     def __init__(self, parent: tk.Widget) -> None:
-        """
-        Initialize the All Words page.
-
-        Args:
-            parent: Parent widget/container
-        """
         super().__init__(parent)
 
         # Data storage
@@ -59,7 +46,6 @@ class AllWordsPage(ttk.Frame):
         self._setup_grid()
 
         # Create UI components
-
         self._create_title()
         self._create_search_bar()
         self._create_statistics()
@@ -192,7 +178,6 @@ class AllWordsPage(ttk.Frame):
 
     def _update_statistics(self) -> None:
         """Update statistics labels with word counts by difficulty."""
-        # Count words by difficulty
         counts = {
             "NEW_WORD": 0,
             "EASY": 0,
@@ -248,71 +233,45 @@ class AllWordsPage(ttk.Frame):
         self.search_entry.bind("<KeyRelease>", self.on_search)
         self.search_entry.bind("<FocusIn>", self._clear_search_placeholder)
         self.search_entry.bind("<FocusOut>", self._restore_search_placeholder)
-        # Double-click binding is handled in controller
 
-    # ==================== Search Placeholder Management ====================
+    # ==================== Placeholder Management ====================
 
     def _set_search_placeholder(self) -> None:
-        """Set the search placeholder text and styling."""
+        """Set placeholder text in search entry."""
         self.search_entry.delete(0, tk.END)
         self.search_entry.insert(0, self.search_placeholder)
         self.search_entry.configure(foreground="gray")
         self._search_active = False
 
     def _clear_search_placeholder(self, event: tk.Event) -> None:
-        """
-        Clear placeholder text when entry gains focus.
-
-        Args:
-            event: Focus event
-        """
+        """Clear placeholder when focused."""
         if not self._search_active and self.search_entry.get() == self.search_placeholder:
             self.search_entry.delete(0, tk.END)
             self.search_entry.configure(foreground="black")
             self._search_active = True
 
     def _restore_search_placeholder(self, event: tk.Event) -> None:
-        """
-        Restore placeholder if entry is empty when losing focus.
-
-        Args:
-            event: Focus event
-        """
+        """Restore placeholder if empty."""
         if not self.search_entry.get():
             self._set_search_placeholder()
 
-    # ==================== Data Display Methods ====================
+    # ==================== Data Display ====================
 
     def show_words(self, word_list: List[Tuple]) -> None:
-        """
-        Display words in the table.
-
-        Args:
-            word_list: List of tuples (english, hebrew, difficulty, group)
-        """
-
+        """Display words in the table."""
         self.all_words_cache = list(word_list)
         self._filtered_words = self.all_words_cache.copy()
-        #self.all_words_cache = word_list.copy()
-        #self._filtered_words = word_list.copy()
         self._populate_tree(self._filtered_words)
         self._update_statistics()
         self._update_word_count()
 
     def _populate_tree(self, words: List[Tuple]) -> None:
-        """
-        Populate treeview with word data.
-
-        Args:
-            words: List of word tuples to display
-        """
+        """Populate treeview with word data."""
         self.clear_treeview()
 
         for idx, word_tuple in enumerate(words):
-            # Validate tuple has correct number of elements
             if len(word_tuple) >= 4:
                 eng, heb, diff, group = word_tuple[:4]
-                # Alternate row colors
                 tag = "evenrow" if idx % 2 == 0 else "oddrow"
                 self.tree.insert("", "end", values=(eng, heb, diff, group), tags=(tag,))
 
@@ -331,16 +290,10 @@ class AllWordsPage(ttk.Frame):
         else:
             self.count_label.config(text=f"Showing {displayed} of {total} words")
 
-    # ==================== Search Functionality ====================
+    # ==================== Search ====================
 
     def on_search(self, event: Optional[tk.Event] = None) -> None:
-        """
-        Filter words based on search query.
-
-        Args:
-            event: Key release event (optional)
-        """
-        # Skip if placeholder is showing
+        """Filter words based on search query."""
         if not self._search_active:
             return
 
@@ -358,22 +311,11 @@ class AllWordsPage(ttk.Frame):
         self._update_word_count()
 
     def _matches_search(self, word: Tuple, query: str) -> bool:
-        """
-        Check if a word matches the search query.
-
-        Args:
-            word: Word tuple (english, hebrew, difficulty, group)
-            query: Search query string (lowercase)
-
-        Returns:
-            True if word matches query
-        """
+        """Check if word matches search query."""
         if len(word) < 4:
             return False
 
         english, hebrew, difficulty, group = word[:4]
-
-        # Search in all relevant fields
         searchable_fields = [english, hebrew, group]
 
         return any(
@@ -382,15 +324,9 @@ class AllWordsPage(ttk.Frame):
             if field is not None
         )
 
-    # ==================== Sorting Functionality ====================
+    # ==================== Sorting (WITH NATURAL SORT!) ====================
 
     def _sort_by_column(self, column: str) -> None:
-        """
-        Sort the table by the specified column.
-
-        Args:
-            column: Column name to sort by
-        """
         # Determine column index
         try:
             col_index = self.COLUMNS.index(column)
@@ -412,6 +348,13 @@ class AllWordsPage(ttk.Frame):
                     key=lambda x: self._get_difficulty_value(x[col_index]),
                     reverse=self._sort_reverse
                 )
+            elif column == "Group":
+                # 🌟 NATURAL SORT FOR GROUPS! 🌟
+                # This fixes the 1, 10, 19, 2 problem
+                self._filtered_words.sort(
+                    key=lambda x: natural_sort_key(x[col_index]),
+                    reverse=self._sort_reverse
+                )
             else:
                 # Alphabetical sort for other columns
                 self._filtered_words.sort(
@@ -429,25 +372,15 @@ class AllWordsPage(ttk.Frame):
         self._update_sort_indicator(column)
 
     def _get_difficulty_value(self, difficulty: any) -> int:
-        """
-        Convert difficulty to numeric value for sorting.
-
-        Args:
-            difficulty: Difficulty value (string or number)
-
-        Returns:
-            Numeric value for sorting
-        """
+        """Convert difficulty to numeric value for sorting."""
         if difficulty is None:
             return 0
 
-        # Try direct conversion to int
         try:
             return int(difficulty)
         except (ValueError, TypeError):
             pass
 
-        # Map text difficulty to numbers
         difficulty_map = {
             "easy": 1,
             "medium": 2,
@@ -457,13 +390,7 @@ class AllWordsPage(ttk.Frame):
         return difficulty_map.get(str(difficulty).lower(), 0)
 
     def _update_sort_indicator(self, column: str) -> None:
-        """
-        Update column header to show sort direction.
-
-        Args:
-            column: Column being sorted
-        """
-        # Update all headers
+        """Update column header to show sort direction."""
         for col in self.COLUMNS:
             if col == column:
                 indicator = " ↓" if self._sort_reverse else " ↑"
@@ -471,32 +398,10 @@ class AllWordsPage(ttk.Frame):
             else:
                 self.tree.heading(col, text=col)
 
-    # ==================== Event Handlers ====================
-
-    def on_double_click(self, event: tk.Event) -> None:
-        """
-        Handle double-click event on table row.
-        This method is kept for backward compatibility but should
-        be bound in the controller.
-
-        Args:
-            event: Double-click event
-        """
-        item = self.tree.selection()
-        if not item:
-            return
-        values = self.tree.item(item[0], "values")
-        print(f"Double-clicked: {values}")
-
-    # ==================== Public API Methods ====================
+    # ==================== Public API ====================
 
     def get_selected_word(self) -> Optional[Tuple]:
-        """
-        Get the currently selected word data.
-
-        Returns:
-            Tuple of (english, hebrew, difficulty, group) or None
-        """
+        """Get the currently selected word data."""
         selection = self.tree.selection()
         if not selection:
             return None
@@ -505,7 +410,6 @@ class AllWordsPage(ttk.Frame):
         return values if values else None
 
     def refresh_display(self) -> None:
-        """Refresh the current display (useful after data updates)."""
+        """Refresh the current display."""
         self._populate_tree(self._filtered_words)
         self._update_word_count()
-

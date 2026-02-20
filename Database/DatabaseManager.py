@@ -388,106 +388,228 @@ class DatabaseManager:
             print(f"Error getting group statistics: {e}")
             return {}
 
-    # ==================== Example: Complete DatabaseManager class ====================
-
     """
-    Here's how these methods integrate into your existing DatabaseManager:
+    Additional Methods for DatabaseManager
 
-    class DatabaseManager:
-        def __init__(self, db_path):
-            self.connection = sqlite3.connect(db_path)
-            self.create_tables()
-
-        def create_tables(self):
-            cursor = self.connection.cursor()
-
-            # Main words table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS words (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    english TEXT NOT NULL,
-                    hebrew TEXT UNIQUE NOT NULL,
-                    difficulty TEXT NOT NULL,
-                    group_name TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-
-            # Optional: Separate groups table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS groups (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT UNIQUE NOT NULL,
-                    description TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-
-            self.connection.commit()
-
-        def get_full_data(self):
-            # Your existing method
-            cursor = self.connection.cursor()
-            cursor.execute('SELECT english, hebrew, difficulty, group_name FROM words')
-            return cursor.fetchall()
-
-        def get_word_details(self, english_word):
-            # Your existing method
-            cursor = self.connection.cursor()
-            cursor.execute(
-                'SELECT id, hebrew, english, difficulty, group_name FROM words WHERE english = ?',
-                (english_word,)
-            )
-            return cursor.fetchone()
-
-        def update_difficulty(self, hebrew_word, new_difficulty):
-            # Your existing method
-            cursor = self.connection.cursor()
-            cursor.execute(
-                'UPDATE words SET difficulty = ? WHERE hebrew = ?',
-                (new_difficulty, hebrew_word)
-            )
-            self.connection.commit()
-
-        # ADD THE NEW METHODS HERE:
-        # - update_group()
-        # - get_all_groups()
-        # - create_group()
-        # - rename_group()
-        # - delete_group()
-        # - get_words_by_group()
-        # - get_group_statistics()
+    Add these methods to your existing DatabaseManager class to get group statistics.
     """
 
-    # ==================== Database Schema Example ====================
+    # ==================== ADD THESE METHODS TO YOUR DatabaseManager CLASS ====================
 
-    """
-    Recommended table structure:
+    def print_group_statistics(self):
+        """
+        Print statistics about word groups.
 
-    CREATE TABLE words (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        english TEXT NOT NULL,
-        hebrew TEXT UNIQUE NOT NULL,
-        difficulty TEXT NOT NULL CHECK(difficulty IN ('EASY', 'MEDIUM', 'HARD')),
-        group_name TEXT,
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (group_name) REFERENCES groups(name) ON UPDATE CASCADE
-    );
+        Shows:
+        - Number of words in each group
+        - Percentage of total words
+        - Total groups and words
 
-    CREATE TABLE groups (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL,
-        description TEXT,
-        color TEXT,  -- Optional: for UI color coding
-        icon TEXT,   -- Optional: for UI icons
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+        Usage:
+            db = DatabaseManager()
+            db.print_group_statistics()
+        """
+        try:
+            query = """
+                SELECT group_name, COUNT(*) as word_count
+                FROM vocabulary
+                WHERE group_name IS NOT NULL AND group_name != ''
+                GROUP BY group_name
+                ORDER BY word_count DESC
+            """
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
 
-    CREATE INDEX idx_words_group ON words(group_name);
-    CREATE INDEX idx_words_difficulty ON words(difficulty);
-    """
+            if not results:
+                print("No groups found in database.")
+                return
 
+            # Calculate totals
+            total_words = sum(count for _, count in results)
+            total_groups = len(results)
+
+            # Print header
+            print()
+            print("=" * 70)
+            print("WORD GROUPS STATISTICS")
+            print("=" * 70)
+            print()
+            print(f"Total Groups: {total_groups}")
+            print(f"Total Words:  {total_words}")
+            print()
+
+            # Print table
+            print(f"{'Group Name':<45} {'Words':>8}  {'%':>8}")
+            print("-" * 70)
+
+            for group_name, word_count in results:
+                percentage = (word_count / total_words * 100) if total_words > 0 else 0
+                display_name = group_name[:44] if len(group_name) > 44 else group_name
+                print(f"{display_name:<45} {word_count:>8}  {percentage:>7.1f}%")
+
+            # Print footer
+            print("-" * 70)
+            print(f"{'TOTAL':<45} {total_words:>8}  {100.0:>7.1f}%")
+            print()
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+    def get_group_word_counts(self):
+        """
+        Get word count for each group.
+
+        Returns:
+            Dictionary mapping group names to word counts
+
+        Usage:
+            db = DatabaseManager()
+            counts = db.get_group_word_counts()
+            # Returns: {'Group 1': 45, 'Group 2': 120, ...}
+        """
+        try:
+            query = """
+                SELECT group_name, COUNT(*) as word_count
+                FROM vocabulary
+                WHERE group_name IS NOT NULL AND group_name != ''
+                GROUP BY group_name
+                ORDER BY word_count DESC
+            """
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+
+            return {group: count for group, count in results}
+
+        except Exception as e:
+            print(f"Error getting group word counts: {e}")
+            return {}
+
+    def print_group_statistics_with_difficulty(self):
+        """
+        Print statistics with difficulty breakdown for each group.
+
+        Shows:
+        - Total words per group
+        - Breakdown by difficulty (NEW_WORD, EASY, MEDIUM, HARD)
+
+        Usage:
+            db = DatabaseManager()
+            db.print_group_statistics_with_difficulty()
+        """
+        try:
+            query = """
+                SELECT 
+                    group_name,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN difficulty = 'NEW_WORD' THEN 1 ELSE 0 END) as new_word,
+                    SUM(CASE WHEN difficulty = 'EASY' THEN 1 ELSE 0 END) as easy,
+                    SUM(CASE WHEN difficulty = 'MEDIUM' THEN 1 ELSE 0 END) as medium,
+                    SUM(CASE WHEN difficulty = 'HARD' THEN 1 ELSE 0 END) as hard
+                FROM vocabulary
+                WHERE group_name IS NOT NULL AND group_name != ''
+                GROUP BY group_name
+                ORDER BY total DESC
+            """
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+
+            if not results:
+                print("No groups found.")
+                return
+
+            print()
+            print("=" * 90)
+            print("WORD GROUPS - DIFFICULTY BREAKDOWN")
+            print("=" * 90)
+            print()
+
+            # Header
+            print(f"{'Group Name':<35} {'Total':>7} {'New':>6} {'Easy':>6} {'Med':>6} {'Hard':>6}")
+            print("-" * 90)
+
+            total_all = 0
+            total_new = 0
+            total_easy = 0
+            total_medium = 0
+            total_hard = 0
+
+            for row in results:
+                group_name, total, new, easy, medium, hard = row
+                display_name = group_name[:34] if len(group_name) > 34 else group_name
+
+                print(f"{display_name:<35} {total:>7} {new:>6} {easy:>6} {medium:>6} {hard:>6}")
+
+                total_all += total
+                total_new += new
+                total_easy += easy
+                total_medium += medium
+                total_hard += hard
+
+            # Footer
+            print("-" * 90)
+            print(f"{'TOTAL':<35} {total_all:>7} {total_new:>6} {total_easy:>6} {total_medium:>6} {total_hard:>6}")
+            print()
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+    def get_group_info(self, group_name):
+        """
+        Get detailed information about a specific group.
+
+        Args:
+            group_name: Name of the group
+
+        Returns:
+            Dictionary with:
+            - total_words: Total word count
+            - difficulty_breakdown: Dict of difficulty -> count
+            - with_examples: Count of words with examples
+            - without_examples: Count of words without examples
+
+        Usage:
+            db = DatabaseManager()
+            info = db.get_group_info("Harry Potter 1")
+            print(f"Total words: {info['total_words']}")
+        """
+        try:
+            # Total words
+            query_total = """
+                SELECT COUNT(*) FROM vocabulary 
+                WHERE group_name = ?
+            """
+            self.cursor.execute(query_total, (group_name,))
+            total_words = self.cursor.fetchone()[0]
+
+            # Difficulty breakdown
+            query_diff = """
+                SELECT difficulty, COUNT(*) 
+                FROM vocabulary 
+                WHERE group_name = ?
+                GROUP BY difficulty
+            """
+            self.cursor.execute(query_diff, (group_name,))
+            difficulty_breakdown = dict(self.cursor.fetchall())
+
+            # With/without examples
+            query_examples = """
+                SELECT 
+                    COUNT(CASE WHEN examples IS NOT NULL AND examples != '' THEN 1 END) as with_examples,
+                    COUNT(CASE WHEN examples IS NULL OR examples = '' THEN 1 END) as without_examples
+                FROM vocabulary
+                WHERE group_name = ?
+            """
+            self.cursor.execute(query_examples, (group_name,))
+            result = self.cursor.fetchone()
+
+            return {
+                'total_words': total_words,
+                'difficulty_breakdown': difficulty_breakdown,
+                'with_examples': result[0] if result else 0,
+                'without_examples': result[1] if result else 0
+            }
+
+        except Exception as e:
+            print(f"Error getting group info: {e}")
+            return None
 
