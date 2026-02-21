@@ -107,6 +107,10 @@ class QuizController:
         self.page.choice_medium.trace('w', lambda *args: self._on_filter_change())
         self.page.choice_hard.trace('w', lambda *args: self._on_filter_change())
 
+        #Audio
+        self.page.audio_replay_btn.config(command=self.replay_audio)
+        self.page.audio_mode_cb.config(command=self.on_audio_mode_toggle)
+
     def _on_filter_change(self):
         """Handle filter changes."""
         if self.quiz_configured:
@@ -445,3 +449,24 @@ class QuizController:
 
         except Exception as e:
             print(f"Error showing results dialog: {e}")
+
+    def replay_audio(self):
+        """Replay the current word's audio."""
+        if self.curr_eng_word:
+            play_sound(self.curr_eng_word)
+
+    def on_audio_mode_toggle(self):
+        """Handle audio mode toggle - update current display."""
+        if self.curr_eng_word:
+            # Refresh the current question display
+            if self.page.is_audio_mode():
+                # Hide the English word
+                self.page.eng_word_label.config(text="🎧 Listen carefully...")
+                self.page.show_replay_button()
+                # Play sound again when entering audio mode
+                play_sound(self.curr_eng_word)
+            else:
+                # Show the English word
+                self.page.eng_word_label.config(text=self.curr_eng_word)
+                self.page.hide_replay_button()
+

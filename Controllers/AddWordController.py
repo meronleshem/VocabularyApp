@@ -21,6 +21,7 @@ class AddWordController:
         self.page.add_from_pdf_btn.config(command=self.add_from_pdf)
         self.page.quiz_btn.config(command=self.switch_to_quiz)
         self.page.fill_blank_quiz_btn.config(command=self.show_fill_blank_quiz)
+        self.page.flashcards_btn.config(command=self.show_flashcards)
 
     def translate(self):
         eng_word = self.page.word_entry.get()
@@ -55,6 +56,12 @@ class AddWordController:
 
     def show_fill_blank_quiz(self):
         self.view.show_page(self.view.pages["fill_blank_quiz_page"])
+
+    def show_flashcards(self):
+        """Show flashcards page and start session."""
+        # Get the flashcards controller from AppController
+        # We'll need to pass it or access it
+        self.view.show_page(self.view.pages["flashcards_page"])
 
     def switch_page(self):
         words_list = self.model.get_full_data()

@@ -12,7 +12,7 @@ from View.AddWordPage import AddWordPage
 from View.AllWordsPage import AllWordsPage
 from View.QuizPage import QuizPage
 from View.FillBlankQuizPage import FillBlankQuizPage
-
+from View.FlashcardsPage import FlashcardsPage
 
 class ViewManager(tk.Tk):
     """
@@ -26,7 +26,8 @@ class ViewManager(tk.Tk):
         "add_word_page": ("850x600", 800, 550),  # (geometry, min_width, min_height)
         "all_words_page": ("1000x700", 900, 650),
         "quiz_page": ("1100x850", 950, 700),
-        "fill_blank_quiz_page": ("1100x750", 950, 700)
+        "fill_blank_quiz_page": ("1100x750", 950, 700),
+        "flashcards_page": ("1100x750", 800, 700)
     }
 
     def __init__(self):
@@ -55,7 +56,8 @@ class ViewManager(tk.Tk):
             "add_word_page": AddWordPage(self.container),
             "all_words_page": AllWordsPage(self.container),
             "quiz_page": QuizPage(self.container),
-            "fill_blank_quiz_page": FillBlankQuizPage(self.container)
+            "fill_blank_quiz_page": FillBlankQuizPage(self.container),
+            "flashcards_page": FlashcardsPage(self.container)
         }
 
         # Track current page

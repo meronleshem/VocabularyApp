@@ -173,6 +173,7 @@ class QuizPage(tk.Frame):
         self.choice_easy = tk.IntVar(value=1)
         self.choice_medium = tk.IntVar(value=1)
         self.choice_hard = tk.IntVar(value=1)
+        self.audio_mode = tk.IntVar(value=0)  # 0 = OFF, 1 = ON
 
         # Create UI sections
         self._create_header()
@@ -235,7 +236,7 @@ class QuizPage(tk.Frame):
         self._create_result_section(main_container)
 
     def _create_question_card(self, parent):
-        """Create the question display card."""
+        """Create the question display card with audio controls."""
         # Card frame with border
         card_frame = tk.Frame(
             parent,
@@ -250,25 +251,39 @@ class QuizPage(tk.Frame):
         card_content.pack(fill="both", expand=True, padx=30, pady=30)
 
         # Label above word
-        question_label = tk.Label(
+        self.question_label = tk.Label(
             card_content,
             text="Translate this word:",
             font=("Segoe UI", 11),
             bg="#ffffff",
             fg="#6c757d"
         )
-        question_label.pack(pady=(0, 15))
+        self.question_label.pack(pady=(0, 15))
+
+        # Container for word + audio button
+        word_container = tk.Frame(card_content, bg="#ffffff")
+        word_container.pack()
 
         # English word display
         self.eng_word_label = tk.Label(
-            card_content,
+            word_container,
             text="",
             font=("Segoe UI", 32, "bold"),
             bg="#ffffff",
             fg="#212529",
             wraplength=600
         )
-        self.eng_word_label.pack()
+        self.eng_word_label.pack(side="left", padx=(0, 15))
+
+        # Audio replay button (🔊)
+        self.audio_replay_btn = tb.Button(
+            word_container,
+            text="🔊",
+            bootstyle="info-outline",
+            width=3
+        )
+        self.audio_replay_btn.pack(side="left")
+        self.audio_replay_btn.pack_forget()  # Hidden by default
 
         # Difficulty badge
         self.difficulty_badge = tk.Label(
@@ -418,6 +433,39 @@ class QuizPage(tk.Frame):
         )
         cb_hard.pack(anchor="w", pady=3)
 
+        # Separator
+        tk.Frame(filters_frame, bg="#dee2e6", height=1).pack(fill="x", pady=(10, 10))
+
+        # Audio Mode section header
+        audio_label = tk.Label(
+            filters_frame,
+            text="🎧 Audio Mode",
+            font=("Segoe UI", 10, "bold"),
+            bg="#f8f9fa",
+            fg="#212529"
+        )
+        audio_label.pack(anchor="w", pady=(5, 5))
+
+        # Audio mode checkbox
+        self.audio_mode_cb = ttk.Checkbutton(
+            filters_frame,
+            text="Audio Only (Harder)",
+            variable=self.audio_mode,
+            command=self._toggle_audio_mode
+        )
+        self.audio_mode_cb.pack(anchor="w", pady=3)
+
+        # Description
+        audio_desc = tk.Label(
+            filters_frame,
+            text="Hide English word,\nlisten only",
+            font=("Segoe UI", 8),
+            bg="#f8f9fa",
+            fg="#6c757d",
+            justify="left"
+        )
+        audio_desc.pack(anchor="w", padx=(20, 0))
+
     def _create_actions_section(self, parent):
         """Create action buttons section."""
         # Section title
@@ -518,16 +566,15 @@ class QuizPage(tk.Frame):
     # ==================== Public Methods ====================
 
     def show_options(self, eng_word: str, heb_ans: str, options_list: List[str]):
-        """
-        Display a new question with answer options.
-
-        Args:
-            eng_word: English word to translate
-            heb_ans: Correct Hebrew answer
-            options_list: List of 4 Hebrew options
-        """
-        # Update question
-        self.eng_word_label.config(text=eng_word)
+        # Update question based on audio mode
+        if self.is_audio_mode():
+            # Audio mode: show listening prompt and replay button
+            self.eng_word_label.config(text="🎧 Listen carefully...")
+            self.show_replay_button()
+        else:
+            # Normal mode: show English word
+            self.eng_word_label.config(text=eng_word)
+            self.hide_replay_button()
 
         # Update option buttons
         for btn, text in zip(self.option_buttons, options_list):
@@ -630,3 +677,32 @@ class QuizPage(tk.Frame):
             btn.config(bg="#d4edda", fg="#155724")
         else:
             btn.config(bg="#f8d7da", fg="#721c24")
+
+    def _toggle_audio_mode(self):
+        """Handle audio mode toggle."""
+        if self.audio_mode.get() == 1:
+            # Audio mode ON
+            self.question_label.config(text="Listen and translate:")
+            # Replay button will be shown when question is displayed
+        else:
+            # Audio mode OFF
+            self.question_label.config(text="Translate this word:")
+            self.audio_replay_btn.pack_forget()
+
+    def set_audio_mode(self, enabled: bool):
+        """Set audio mode programmatically."""
+        self.audio_mode.set(1 if enabled else 0)
+        self._toggle_audio_mode()
+
+    def is_audio_mode(self) -> bool:
+        """Check if audio mode is enabled."""
+        return self.audio_mode.get() == 1
+
+    def show_replay_button(self):
+        """Show the audio replay button."""
+        self.audio_replay_btn.pack(side="left")
+
+    def hide_replay_button(self):
+        """Hide the audio replay button."""
+        self.audio_replay_btn.pack_forget()
+

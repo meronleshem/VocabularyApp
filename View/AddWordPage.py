@@ -1,28 +1,9 @@
-"""
-Add Word Page - Modern Professional Design
-
-Features:
-- Gradient background
-- Modern card-based layout
-- Beautiful buttons with icons
-- Professional color scheme
-"""
 import tkinter as tk
 from tkinter import ttk
 import ttkbootstrap as tb
 
 
 class AddWordPage(tk.Frame):
-    """
-    Modern home page for adding words.
-
-    Features:
-    - Beautiful gradient background
-    - Card-based sections
-    - Modern button styling
-    - Professional design
-    """
-
     def __init__(self, parent):
         super().__init__(parent, bg="#e8eaf6")  # Light purple gradient background
 
@@ -160,6 +141,14 @@ class AddWordPage(tk.Frame):
             width=28
         )
         self.fill_blank_quiz_btn.grid(row=5, column=0, sticky="ew", pady=5)
+
+        self.flashcards_btn = tb.Button(
+            content,
+            text="🎴 Flashcards",
+            bootstyle="info",
+            width=25
+        )
+        self.flashcards_btn.grid(row=6, column=0, sticky="ew", pady=5)
 
     def _create_right_panel(self):
         """Create right panel with translation display."""
