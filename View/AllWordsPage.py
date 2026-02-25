@@ -219,6 +219,13 @@ class AllWordsPage(ttk.Frame):
         )
         self.add_word_btn.pack(side="left")
 
+        # Delete button (NEW!)
+        self.delete_word_btn = ttk.Button(
+            bottom_bar,
+            text="🗑️ Delete Word"
+        )
+        self.delete_word_btn.pack(side="left", padx=(10, 0))
+
         # Word count label
         self.count_label = ttk.Label(
             bottom_bar,

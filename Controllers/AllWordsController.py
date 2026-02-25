@@ -1,11 +1,3 @@
-"""
-All Words Controller - Business logic for All Words page
-
-This module handles the interaction between the All Words view,
-the database model, and user actions.
-
-Updated to support both difficulty and group editing.
-"""
 from typing import Optional, Tuple, List
 import tkinter as tk
 from tkinter import messagebox
@@ -22,29 +14,7 @@ except ImportError as e:
 
 
 class AllWordsController:
-    """
-    Controller for the All Words page.
-
-    Manages:
-    - Loading and displaying word data
-    - User interactions (double-click, search, navigation)
-    - Difficulty AND group changes (updated)
-    - Page navigation
-
-    Attributes:
-        model: Database manager instance
-        view: View manager instance
-        page: All Words page instance
-    """
-
     def __init__(self, model: 'DatabaseManager', view: 'ViewManager') -> None:
-        """
-        Initialize the controller.
-
-        Args:
-            model: Database manager for data operations
-            view: View manager for UI operations
-        """
         self.model = model
         self.view = view
         self.page = view.pages.get("all_words_page")
@@ -60,6 +30,9 @@ class AllWordsController:
         # Home button
         if hasattr(self.page, 'add_word_btn'):
             self.page.add_word_btn.config(command=self.switch_to_home)
+
+        if hasattr(self.page, 'delete_word_btn'):
+            self.page.delete_word_btn.config(command=self.delete_selected_word)
 
         # Double-click on table row
         if hasattr(self.page, 'tree'):
@@ -84,12 +57,6 @@ class AllWordsController:
             self._show_error("Unexpected Error", f"An error occurred: {e}")
 
     def refresh_words(self, preserve_view: bool = True) -> None:
-        """
-        Refresh the word display (e.g., after changes).
-
-        Args:
-            preserve_view: If True, preserves current sort order and scroll position
-        """
         if preserve_view:
             # Save current state (with None checks)
             last_sort = getattr(self.page, '_last_sort_column', None)
@@ -135,13 +102,6 @@ class AllWordsController:
     # ==================== Event Handlers ====================
 
     def on_word_double_click(self, event: tk.Event) -> None:
-        """
-        Handle double-click on a word in the table.
-        Opens dialog to change difficulty and/or group.
-
-        Args:
-            event: Mouse event
-        """
         # Get selected word
         word_data = self._get_selected_word()
         if not word_data:
@@ -163,13 +123,6 @@ class AllWordsController:
             self._show_error("Error", f"Failed to process word: {e}")
 
     def _show_edit_dialog(self, word_details: Tuple, display_data: Tuple) -> None:
-        """
-        Show dialog for editing word properties.
-
-        Args:
-            word_details: Full word details from database
-            display_data: Display data (english, hebrew, difficulty, group)
-        """
         if not word_details or len(word_details) < 4:
             self._show_error("Error", "Invalid word details")
             return
@@ -255,52 +208,61 @@ class AllWordsController:
 
         return changes_made
 
-    # def _show_edit_dialog(self, word_details: Tuple, display_data: Tuple) -> None:
-    #     # Get examples from word_details (index 3 in database)
-    #
-    #     available_groups = self._get_available_groups()
-    #     word_data_with_examples = (
-    #         word_details[1],  # english
-    #         word_details[2],  # hebrew
-    #         word_details[4],  # difficulty
-    #         word_details[5],  # group
-    #         word_details[3]  # examples
-    #     )
-    #
-    #     dialog = WordEditDialog(self.page, word_data_with_examples, available_groups)
-    #
-    #     if dialog.result:
-    #         new_difficulty, new_group, new_examples = dialog.result  # Now 3 values!
-    #
-    #         # Update database with examples
-    #         self._update_word_properties(
-    #             word_details,
-    #             new_difficulty,
-    #             new_group,
-    #             new_examples  # Pass examples
-    #         )
+    def delete_selected_word(self) -> None:
+        # Get selected word
+        selected = self.page.get_selected_word()
 
-    # def _update_word_properties(self, word_details, new_difficulty, new_group, new_examples=None):
-    #     # ... existing difficulty and group updates ...
-    #
-    #     # Update examples
-    #     if new_examples is not None:
-    #         self.model.cursor.execute(
-    #             "UPDATE vocabulary SET examples = ? WHERE engWord = ?",
-    #             (new_examples, word_details[1])
-    #         )
-    #         self.model.connection.commit()
-    #
-    #     return True
+        if not selected:
+            messagebox.showwarning(
+                "No Selection",
+                "Please select a word to delete.",
+                parent=self.page
+            )
+            return
 
+        english_word = selected[0]
+        hebrew_word = selected[1] if len(selected) > 1 else ""
+
+        # Confirmation dialog
+        result = messagebox.askyesno(
+            "Confirm Deletion",
+            f"Are you sure you want to delete this word?\n\n"
+            f"English: {english_word}\n"
+            f"Hebrew: {hebrew_word}\n\n"
+            f"This action cannot be undone!",
+            parent=self.page,
+            icon='warning'
+        )
+
+        if not result:
+            return  # User cancelled
+
+        # Delete from database
+        try:
+            success = self.model.delete_word(english_word)
+
+            if success:
+                messagebox.showinfo(
+                    "Success",
+                    f"Word '{english_word}' has been deleted.",
+                    parent=self.page
+                )
+                # Refresh the display
+                self.show_words()
+            else:
+                messagebox.showerror(
+                    "Error",
+                    f"Failed to delete word '{english_word}'.",
+                    parent=self.page
+                )
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"An error occurred:\n{str(e)}",
+                parent=self.page
+            )
 
     def _get_available_groups(self) -> List[str]:
-        """
-        Get list of existing groups from database.
-
-        Returns:
-            List of group names
-        """
         try:
             # Check if method exists
             if hasattr(self.model, 'get_all_groups'):
@@ -322,15 +284,6 @@ class AllWordsController:
             return []
 
     def _convert_difficulty_to_enum(self, difficulty_str: str) -> Optional[str]:
-        """
-        Convert difficulty string to enum name.
-
-        Args:
-            difficulty_str: Difficulty as string ("Easy", "Medium", "Hard")
-
-        Returns:
-            Enum name or None if invalid
-        """
         if not Difficulty:
             # Fallback if enum not available
             return difficulty_str.upper()
@@ -358,12 +311,6 @@ class AllWordsController:
     # ==================== Helper Methods ====================
 
     def _get_selected_word(self) -> Optional[Tuple]:
-        """
-        Get the currently selected word from the table.
-
-        Returns:
-            Tuple of (english, hebrew, difficulty, group) or None
-        """
         try:
             selection = self.page.tree.selection()
             if not selection:
@@ -377,33 +324,12 @@ class AllWordsController:
             return None
 
     def _show_info(self, title: str, message: str) -> None:
-        """
-        Show an information message box.
-
-        Args:
-            title: Dialog title
-            message: Information message
-        """
         messagebox.showinfo(title, message, parent=self.page)
 
     def _show_warning(self, title: str, message: str) -> None:
-        """
-        Show a warning message box.
-
-        Args:
-            title: Dialog title
-            message: Warning message
-        """
         messagebox.showwarning(title, message, parent=self.page)
 
     def _show_error(self, title: str, message: str) -> None:
-        """
-        Show an error message box.
-
-        Args:
-            title: Dialog title
-            message: Error message
-        """
         messagebox.showerror(title, message, parent=self.page)
 
     # ==================== Public API ====================
@@ -421,14 +347,6 @@ class AllWordsController:
 # ==================== Enhanced Controller (Optional) ====================
 
 class EnhancedAllWordsController(AllWordsController):
-    """
-    Enhanced version with additional features like:
-    - Bulk operations
-    - Export functionality
-    - Statistics
-    - Group management
-    """
-
     def __init__(self, model: 'DatabaseManager', view: 'ViewManager') -> None:
         super().__init__(model, view)
         self._setup_enhanced_features()
@@ -439,15 +357,6 @@ class EnhancedAllWordsController(AllWordsController):
         pass
 
     def create_new_group(self, group_name: str) -> bool:
-        """
-        Create a new group.
-
-        Args:
-            group_name: Name of the new group
-
-        Returns:
-            True if successful
-        """
         try:
             if hasattr(self.model, 'create_group'):
                 self.model.create_group(group_name)
@@ -458,16 +367,6 @@ class EnhancedAllWordsController(AllWordsController):
             return False
 
     def rename_group(self, old_name: str, new_name: str) -> bool:
-        """
-        Rename an existing group.
-
-        Args:
-            old_name: Current group name
-            new_name: New group name
-
-        Returns:
-            True if successful
-        """
         try:
             if hasattr(self.model, 'rename_group'):
                 self.model.rename_group(old_name, new_name)
@@ -479,16 +378,6 @@ class EnhancedAllWordsController(AllWordsController):
             return False
 
     def delete_group(self, group_name: str, reassign_to: Optional[str] = None) -> bool:
-        """
-        Delete a group and optionally reassign words.
-
-        Args:
-            group_name: Group to delete
-            reassign_to: Optional group to reassign words to
-
-        Returns:
-            True if successful
-        """
         try:
             if hasattr(self.model, 'delete_group'):
                 self.model.delete_group(group_name, reassign_to)
@@ -500,15 +389,6 @@ class EnhancedAllWordsController(AllWordsController):
             return False
 
     def export_words(self, filename: str) -> bool:
-        """
-        Export words to a file.
-
-        Args:
-            filename: Output file path
-
-        Returns:
-            True if successful
-        """
         try:
             words = self.model.get_full_data()
             # Implement export logic
@@ -519,12 +399,6 @@ class EnhancedAllWordsController(AllWordsController):
             return False
 
     def get_statistics(self) -> dict:
-        """
-        Get statistics about the word collection.
-
-        Returns:
-            Dictionary with statistics
-        """
         words = self.model.get_full_data()
 
         return {

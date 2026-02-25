@@ -160,19 +160,6 @@ class DatabaseManager:
     # ==================== Add to DatabaseManager class ====================
 
     def update_group(self, engWord: str, new_group: str) -> bool:
-        """
-        Update the group for a specific word.
-
-        Args:
-            engWord: Hebrew word (primary key)
-            new_group: New group name
-
-        Returns:
-            True if successful
-
-        Usage:
-            db.update_group("שלום", "Greetings")
-        """
         try:
             # Example SQL implementation
             # Adjust based on your table structure
@@ -195,16 +182,6 @@ class DatabaseManager:
             return False
 
     def get_all_groups(self) -> list:
-        """
-        Get list of all unique groups.
-
-        Returns:
-            List of group names
-
-        Usage:
-            groups = db.get_all_groups()
-            # Returns: ["Greetings", "Animals", "Food", ...]
-        """
         try:
             cursor = self.connection.cursor()
 
@@ -225,18 +202,6 @@ class DatabaseManager:
             return []
 
     def create_group(self, group_name: str) -> bool:
-        """
-        Create a new group (if your database has a separate groups table).
-
-        Args:
-            group_name: Name of the group to create
-
-        Returns:
-            True if successful
-
-        Usage:
-            db.create_group("New Category")
-        """
         try:
             # If you have a separate groups table
             cursor = self.connection.cursor()
@@ -257,19 +222,6 @@ class DatabaseManager:
             return False
 
     def rename_group(self, old_name: str, new_name: str) -> bool:
-        """
-        Rename a group (updates all words in that group).
-
-        Args:
-            old_name: Current group name
-            new_name: New group name
-
-        Returns:
-            True if successful
-
-        Usage:
-            db.rename_group("Old Name", "New Name")
-        """
         try:
             cursor = self.connection.cursor()
 
@@ -290,23 +242,6 @@ class DatabaseManager:
             return False
 
     def delete_group(self, group_name: str, reassign_to: str = None) -> bool:
-        """
-        Delete a group and optionally reassign its words.
-
-        Args:
-            group_name: Group to delete
-            reassign_to: Optional group to reassign words to (None = set to empty)
-
-        Returns:
-            True if successful
-
-        Usage:
-            # Remove group, set words to no group
-            db.delete_group("Old Group")
-
-            # Remove group, reassign words
-            db.delete_group("Old Group", "New Group")
-        """
         try:
             cursor = self.connection.cursor()
 
@@ -328,18 +263,6 @@ class DatabaseManager:
             return False
 
     def get_words_by_group(self, group_name: str) -> list:
-        """
-        Get all words in a specific group.
-
-        Args:
-            group_name: Group name to filter by
-
-        Returns:
-            List of word tuples in that group
-
-        Usage:
-            words = db.get_words_by_group("Animals")
-        """
         try:
             cursor = self.connection.cursor()
 
@@ -358,16 +281,6 @@ class DatabaseManager:
             return []
 
     def get_group_statistics(self) -> dict:
-        """
-        Get statistics about groups.
-
-        Returns:
-            Dictionary with group stats
-
-        Usage:
-            stats = db.get_group_statistics()
-            # Returns: {"Greetings": 15, "Animals": 23, ...}
-        """
         try:
             cursor = self.connection.cursor()
 
@@ -394,21 +307,7 @@ class DatabaseManager:
     Add these methods to your existing DatabaseManager class to get group statistics.
     """
 
-    # ==================== ADD THESE METHODS TO YOUR DatabaseManager CLASS ====================
-
     def print_group_statistics(self):
-        """
-        Print statistics about word groups.
-
-        Shows:
-        - Number of words in each group
-        - Percentage of total words
-        - Total groups and words
-
-        Usage:
-            db = DatabaseManager()
-            db.print_group_statistics()
-        """
         try:
             query = """
                 SELECT group_name, COUNT(*) as word_count
@@ -456,17 +355,6 @@ class DatabaseManager:
             print(f"Error: {e}")
 
     def get_group_word_counts(self):
-        """
-        Get word count for each group.
-
-        Returns:
-            Dictionary mapping group names to word counts
-
-        Usage:
-            db = DatabaseManager()
-            counts = db.get_group_word_counts()
-            # Returns: {'Group 1': 45, 'Group 2': 120, ...}
-        """
         try:
             query = """
                 SELECT group_name, COUNT(*) as word_count
@@ -485,17 +373,6 @@ class DatabaseManager:
             return {}
 
     def print_group_statistics_with_difficulty(self):
-        """
-        Print statistics with difficulty breakdown for each group.
-
-        Shows:
-        - Total words per group
-        - Breakdown by difficulty (NEW_WORD, EASY, MEDIUM, HARD)
-
-        Usage:
-            db = DatabaseManager()
-            db.print_group_statistics_with_difficulty()
-        """
         try:
             query = """
                 SELECT 
@@ -554,24 +431,6 @@ class DatabaseManager:
             print(f"Error: {e}")
 
     def get_group_info(self, group_name):
-        """
-        Get detailed information about a specific group.
-
-        Args:
-            group_name: Name of the group
-
-        Returns:
-            Dictionary with:
-            - total_words: Total word count
-            - difficulty_breakdown: Dict of difficulty -> count
-            - with_examples: Count of words with examples
-            - without_examples: Count of words without examples
-
-        Usage:
-            db = DatabaseManager()
-            info = db.get_group_info("Harry Potter 1")
-            print(f"Total words: {info['total_words']}")
-        """
         try:
             # Total words
             query_total = """
@@ -612,4 +471,23 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error getting group info: {e}")
             return None
+
+    def delete_word(self, english_word: str) -> bool:
+        try:
+            query = "DELETE FROM vocabulary WHERE engWord = ?"
+            self.cursor.execute(query, (english_word,))
+            self.connection.commit()
+
+            if self.cursor.rowcount > 0:
+                print(f"✓ Successfully deleted: {english_word}")
+                return True
+            else:
+                print(f"✗ Word not found: {english_word}")
+                return False
+
+        except Exception as e:
+            print(f"✗ Error deleting word: {e}")
+            self.connection.rollback()
+            return False
+
 
