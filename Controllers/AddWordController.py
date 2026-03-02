@@ -22,6 +22,7 @@ class AddWordController:
         self.page.quiz_btn.config(command=self.switch_to_quiz)
         self.page.fill_blank_quiz_btn.config(command=self.show_fill_blank_quiz)
         self.page.flashcards_btn.config(command=self.show_flashcards)
+        self.page.grammar_check_btn.config(command=self.show_grammar_checker)
 
     def translate(self):
         eng_word = self.page.word_entry.get()
@@ -68,6 +69,9 @@ class AddWordController:
         sorted_list = sorted(words_list, key=lambda x: x[0])
         self.view.pages["all_words_page"].show_words(sorted_list)
         self.view.show_page(self.view.pages["all_words_page"])
+
+    def show_grammar_checker(self):
+        self.view.show_page(self.view.pages["grammar_check_page"])
 
     def speak(self):
         play_sound(self.page.word_entry.get())

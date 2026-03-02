@@ -5,6 +5,7 @@ from Controllers.AllWordsController import AllWordsController
 from Controllers.QuizController import QuizController
 from Controllers.FillBlankQuizController import FillBlankQuizController
 from Controllers.FlashcardsController import FlashcardsController
+from Controllers.GrammarCheckController import GrammarCheckController
 
 class AppController:
     def __init__(self, model: DatabaseManager, view: ViewManager):
@@ -15,6 +16,7 @@ class AppController:
         self.quiz_controller = QuizController(model, view)
         self.fill_blank_controller = FillBlankQuizController(model, view)
         self.flashcards_controller = FlashcardsController(model, view)
+        self.grammar_check_controller = GrammarCheckController(model, view)
 
 
 

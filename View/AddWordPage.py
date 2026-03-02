@@ -150,6 +150,14 @@ class AddWordPage(tk.Frame):
         )
         self.flashcards_btn.grid(row=6, column=0, sticky="ew", pady=5)
 
+        self.grammar_check_btn = tb.Button(
+            content,
+            text="✍️ Grammar Checker",
+            bootstyle="secondary",
+            width=28
+        )
+        self.grammar_check_btn.grid(row=7, column=0, sticky="ew", pady=5)
+
     def _create_right_panel(self):
         """Create right panel with translation display."""
         # Right container
