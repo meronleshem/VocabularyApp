@@ -61,22 +61,6 @@ from typing import Optional
 # ==================== Dictionary.com Scraper ====================
 
 def scrape_dictionary_com_examples(word: str) -> Optional[str]:
-    """
-    Scrape example sentences from dictionary.com "Example Sentences" section.
-
-    ✅ FREE - No API key needed
-    ✅ HIGH QUALITY - Real example sentences
-    ✅ With sources (BBC, Literature, etc.)
-
-    Args:
-        word: English word
-
-    Returns:
-        Example sentences (up to 3), one per line
-
-    Requires:
-        pip install requests beautifulsoup4 --break-system-packages
-    """
     try:
         import requests
         from bs4 import BeautifulSoup
@@ -176,6 +160,61 @@ def scrape_dictionary_com_examples(word: str) -> Optional[str]:
         print(f"Error scraping dictionary.com: {e}")
         return None
 
+
+from typing import Optional
+import re
+import requests
+from bs4 import BeautifulSoup
+
+
+from typing import Optional, List
+import requests
+import random
+
+
+def get_merriam_examples(word: str) -> Optional[str]:
+    api_key = "21aeb143-c033-4d86-adae-13aa2f6cb759"
+    url = f"https://dictionaryapi.com/api/v3/references/learners/json/{word}?key={api_key}"
+
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if not data or not isinstance(data, list):
+            return None
+
+        examples = []
+
+        for entry in data:
+            # Each entry has definitions under "def"
+            if "def" in entry:
+                for definition in entry["def"]:
+                    if "sseq" in definition:
+                        for sense_group in definition["sseq"]:
+                            for sense in sense_group:
+                                if isinstance(sense, list) and len(sense) > 1:
+                                    sense_data = sense[1]
+
+                                    # Example sentences are in "dt"
+                                    if "dt" in sense_data:
+                                        for dt_item in sense_data["dt"]:
+                                            if dt_item[0] == "vis":  # verbal illustration (example)
+                                                for example in dt_item[1]:
+                                                    text = example.get("t", "")
+                                                    if text:
+                                                        # Remove formatting tags like {it}word{/it}
+                                                        clean_text = text.replace("{it}", "").replace("{/it}", "")
+                                                        examples.append(clean_text)
+
+        if examples:
+            return random.choice(examples)
+        else:
+            return None
+
+    except Exception as e:
+        print(f"API error: {e}")
+        return None
 
 # ==================== Free Dictionary API (Fallback) ====================
 

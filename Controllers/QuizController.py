@@ -136,7 +136,7 @@ class QuizController:
             groups = [row[0] for row in groups_data] if groups_data else []
 
             # Show setup dialog
-            dialog = QuizSetupDialog(self.view, groups)
+            dialog = QuizSetupDialog(self.view, groups, self.model)
 
             if dialog.result:
                 # Mark as configured

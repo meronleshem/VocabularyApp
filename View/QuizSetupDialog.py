@@ -18,10 +18,11 @@ def natural_sort_key(text):
 # ==================== Quiz Setup Dialog ====================
 
 class QuizSetupDialog(tk.Toplevel):
-    def __init__(self, parent, available_groups: List[str]):
+    def __init__(self, parent, available_groups: List[str], db=None):
         super().__init__(parent)
 
         self.available_groups = available_groups
+        self.db = db
         self.result: Optional[Dict] = None
 
         # Configuration
@@ -140,7 +141,7 @@ class QuizSetupDialog(tk.Toplevel):
         scrollbar = ttk.Scrollbar(tree_frame, orient="vertical",
                                   command=self.groups_tree.yview)
         self.groups_tree.configure(yscrollcommand=scrollbar.set)
-
+        self._configure_tree_colors()
         # Pack tree and scrollbar
         self.groups_tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
@@ -183,12 +184,13 @@ class QuizSetupDialog(tk.Toplevel):
         for book_name, chapters in sorted(hierarchy.items(), key=natural_sort_key):
             if len(chapters) == 1 and chapters[0] == book_name:
                 # Single group, no hierarchy
+                color_tag = self._get_group_difficulty_color(book_name)
                 item_id = self.groups_tree.insert("", "end", text=f"☐ {book_name}",
-                                                  tags=("unchecked",))
+                                                  tags=("unchecked", color_tag))
                 self.tree_items[book_name] = item_id
                 self.item_states[item_id] = True  # Selected by default
                 # Update to checked
-                self.groups_tree.item(item_id, text=f"☑ {book_name}", tags=("checked",))
+                self.groups_tree.item(item_id, text=f"☑ {book_name}", tags=("checked", color_tag))
             else:
                 # Book with chapters
                 book_id = self.groups_tree.insert("", "end", text=f"☐ {book_name} ({len(chapters)})",
@@ -198,12 +200,13 @@ class QuizSetupDialog(tk.Toplevel):
 
                 # 🌟 NATURAL SORT for chapters! 🌟
                 for chapter in sorted(chapters, key=natural_sort_key):
+                    color_tag = self._get_group_difficulty_color(chapter)
                     chapter_id = self.groups_tree.insert(book_id, "end", text=f"☐ {chapter}",
-                                                         tags=("chapter", "unchecked"))
+                                                         tags=("chapter", "unchecked", color_tag))
                     self.tree_items[chapter] = chapter_id
                     self.item_states[chapter_id] = True  # Selected by default
                     # Update to checked
-                    self.groups_tree.item(chapter_id, text=f"☑ {chapter}", tags=("chapter", "checked"))
+                    self.groups_tree.item(chapter_id, text=f"☑ {chapter}", tags=("chapter", "checked", color_tag))
 
                 # Update book checkbox
                 self.groups_tree.item(book_id, text=f"☑ {book_name} ({len(chapters)})",
@@ -262,13 +265,35 @@ class QuizSetupDialog(tk.Toplevel):
         self.groups_tree.item(item, text=f"{checkbox} {text}")
 
         # Update tags
-        tags = list(self.groups_tree.item(item, "tags"))
-        if "checked" in tags:
-            tags.remove("checked")
-        if "unchecked" in tags:
-            tags.remove("unchecked")
-        tags.append("checked" if new_state else "unchecked")
-        self.groups_tree.item(item, tags=tuple(tags))
+        # tags = list(self.groups_tree.item(item, "tags"))
+        # if "checked" in tags:
+        #     tags.remove("checked")
+        # if "unchecked" in tags:
+        #     tags.remove("unchecked")
+        # tags.append("checked" if new_state else "unchecked")
+        # self.groups_tree.item(item, tags=tuple(tags))
+        current_tags = list(self.groups_tree.item(item, "tags"))
+
+        # Preserve color tag
+        color_tag = None
+        for tag in current_tags:
+            if tag.endswith('_group'):
+                color_tag = tag
+                break
+
+        # Build new tags
+        new_tags = []
+        if "book" in current_tags:
+            new_tags.append("book")
+        if "chapter" in current_tags:
+            new_tags.append("chapter")
+
+        new_tags.append("checked" if new_state else "unchecked")
+
+        if color_tag:
+            new_tags.append(color_tag)  # ← Preserve color
+
+        self.groups_tree.item(item, text=f"{checkbox} {text}", tags=tuple(new_tags))
 
         # If it's a parent, update all children
         children = self.groups_tree.get_children(item)
@@ -498,3 +523,64 @@ class QuizSetupDialog(tk.Toplevel):
         y = parent.winfo_rooty() + (parent.winfo_height() - self.winfo_height()) // 2
 
         self.geometry(f"+{x}+{y}")
+
+    def _get_group_difficulty_color(self, group_name: str) -> str:
+        """Get color based on group's difficulty distribution."""
+        if not self.db:
+            return 'default_group'
+
+        try:
+            query = """
+                SELECT difficulty, COUNT(*) as count
+                FROM vocabulary
+                WHERE group_name = ?
+                GROUP BY difficulty
+            """
+            self.db.cursor.execute(query, (group_name,))
+            results = self.db.cursor.fetchall()
+
+            if not results:
+                return 'default_group'
+
+            # Count by difficulty
+            counts = {'NEW_WORD': 0, 'EASY': 0, 'MEDIUM': 0, 'HARD': 0}
+            for difficulty, count in results:
+                if difficulty in counts:
+                    counts[difficulty] = count
+
+            total = sum(counts.values())
+            if total == 0:
+                return 'default_group'
+
+            # Calculate percentages
+            easy_percent = (counts['EASY'] / total) * 100
+            medium_percent = (counts['MEDIUM'] / total) * 100
+            hard_percent = (counts['HARD'] / total) * 100
+
+            # Determine dominant difficulty
+            if hard_percent >= 40:
+                return 'hard_group'
+            elif medium_percent >= 40:
+                return 'medium_group'
+            elif easy_percent >= 40:
+                return 'easy_group'
+            else:
+                # Use highest percentage
+                max_diff = max(
+                    ('hard_group', hard_percent),
+                    ('medium_group', medium_percent),
+                    ('easy_group', easy_percent),
+                    key=lambda x: x[1]
+                )
+                return max_diff[0]
+
+        except Exception as e:
+            print(f"Error getting group difficulty: {e}")
+            return 'default_group'
+
+    def _configure_tree_colors(self):
+        """Configure color tags for treeview."""
+        self.groups_tree.tag_configure('easy_group', foreground='#28a745')
+        self.groups_tree.tag_configure('medium_group', foreground='#fb8c00')
+        self.groups_tree.tag_configure('hard_group', foreground='#e53935')
+        self.groups_tree.tag_configure('default_group', foreground='#000000')
