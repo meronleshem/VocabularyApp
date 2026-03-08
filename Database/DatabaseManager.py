@@ -47,6 +47,7 @@ class DatabaseManager:
         return self.cursor.execute(f"SELECT engWord, hebWord, difficulty, group_name FROM {self.table_name}")
 
     def add_word(self, eng_word, group_name="New_Words"):
+        """Add a new word to the database."""
         if self.is_word_exists(eng_word):
             print(f"{eng_word} is already exists. Abort adding")
             return False
@@ -56,16 +57,19 @@ class DatabaseManager:
             print(f"{eng_word} is not a valid word. Abort adding")
             return False
 
-        num_of_words = self.get_table_size()
-        word_id = num_of_words + 1
         examples = get_word_examples(eng_word)
 
-        word_data = (word_id, eng_word.lower(), heb_word, examples, Difficulty.NEW_WORD.name, group_name)
-        self.cursor.execute(f"INSERT INTO {self.table_name}"
-                         f" (id, engWord, hebWord, examples, difficulty, group_name) VALUES (?, ?, ?, ?, ?, ?)", word_data)
+        # Let SQLite auto-generate the ID - don't specify it
+        word_data = (eng_word.lower(), heb_word, examples, Difficulty.NEW_WORD.name, group_name)
+
+        self.cursor.execute(
+            f"INSERT INTO {self.table_name} "
+            f"(engWord, hebWord, examples, difficulty, group_name) "
+            f"VALUES (?, ?, ?, ?, ?)",
+            word_data
+        )
 
         self.connection.commit()
-
         print(f"{eng_word} was added!")
         return True
 
@@ -111,7 +115,7 @@ class DatabaseManager:
         curr_pack = 1
         curr_pack_num = 0
         for word in words_to_add:
-            group_name = f"The Last Argument of Kings {curr_pack}"
+            group_name = f"Project Hail Mary {curr_pack}"
             if self.add_word(word, group_name) is True:
                 curr_pack_num += 1
             if curr_pack_num == pack_size:
