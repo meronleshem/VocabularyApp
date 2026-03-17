@@ -41,9 +41,9 @@ class AddWordController:
     def add_from_text_file(self):
         filepath = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
         if filepath:
-            group_name = simpledialog.askstring("Input", "Enter the group name:")
+           # group_name = simpledialog.askstring("Input", "Enter the group name:")
 
-            self.model.add_from_file(filepath, group_name)
+            self.model.add_from_file(filepath)
 
     def add_from_pdf(self):
         filepath = filedialog.askopenfilename(filetypes=[("PDF Files", "*.pdf")])

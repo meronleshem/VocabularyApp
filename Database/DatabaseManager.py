@@ -73,10 +73,19 @@ class DatabaseManager:
         print(f"{eng_word} was added!")
         return True
 
-    def add_from_file(self, filepath, group_name):
+    def add_from_file(self, filepath):
         words_to_add = read_words_from_file(filepath)
+
+        pack_size = 40
+        curr_pack = 2
+        curr_pack_num = 0
         for word in words_to_add:
-            self.add_word(word, group_name)
+            group_name = f"The Will of The Many {curr_pack}"
+            if self.add_word(word, group_name) is True:
+                curr_pack_num += 1
+            if curr_pack_num == pack_size:
+                curr_pack += 1
+                curr_pack_num = 0
 
     def update_difficulty(self, eng_word, difficulty):
         self.cursor.execute(f"UPDATE {self.table_name}"
